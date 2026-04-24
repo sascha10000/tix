@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket Type - Admin{% endblock %}
+
+{% block content %}
+<h1>{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket Type</h1>
+
+{% match edit %}
+{% when Some with (t) %}
+<form method="post" action="/admin/ticket-types/{{ t.id }}/edit">
+    <label>Name <input type="text" name="name" value="{{ t.name }}" required></label>
+    <label>Description <textarea name="description">{{ t.description }}</textarea></label>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/admin/ticket-types" class="btn">Cancel</a>
+</form>
+
+<h2>Custom Fields</h2>
+{% if !fields.is_empty() %}
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Position</th>
+            <th>Constraints</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in fields %}
+        <tr>
+            <td>{{ f.name }}</td>
+            <td>{{ f.field_type }}</td>
+            <td>{% if f.is_required %}Yes{% else %}No{% endif %}</td>
+            <td>{{ f.position }}</td>
+            <td>
+                {% if f.field_type == "number" %}
+                {% if let Some(min) = f.num_min %}min={{ min }} {% endif %}
+                {% if let Some(max) = f.num_max %}max={{ max }} {% endif %}
+                {% if let Some(step) = f.num_step %}step={{ step }}{% endif %}
+                {% endif %}
+            </td>
+            <td>
+                <form method="post" action="/admin/ticket-types/{{ t.id }}/fields/{{ f.id }}/delete" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete field?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<h3>Add Field</h3>
+<form method="post" action="/admin/ticket-types/{{ t.id }}/fields">
+    <label>Name <input type="text" name="name" required></label>
+    <label>Type
+        <select name="field_type">
+            <option value="text">Text</option>
+            <option value="textarea">Textarea</option>
+            <option value="number">Number</option>
+            <option value="date">Date</option>
+            <option value="user">User (project member)</option>
+            <option value="ticket">Ticket (in project)</option>
+        </select>
+    </label>
+    <label><input type="checkbox" name="is_required"> Required</label>
+    <label>Position <input type="number" name="position" value="0"></label>
+    <label>Min (number only) <input type="text" name="num_min" placeholder="optional"></label>
+    <label>Max (number only) <input type="text" name="num_max" placeholder="optional"></label>
+    <label>Step (number only) <input type="text" name="num_step" placeholder="optional"></label>
+    <button type="submit" class="btn btn-primary">Add Field</button>
+</form>
+
+{% when None %}
+<form method="post" action="/admin/ticket-types">
+    <label>Name <input type="text" name="name" required autofocus></label>
+    <label>Description <textarea name="description"></textarea></label>
+    {% if !available_templates.is_empty() %}
+    <label>Copy fields from
+        <select name="template_id">
+            <option value="0">-- None --</option>
+            {% for t in available_templates %}
+            <option value="{{ t.id }}">{{ t.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a href="/admin/ticket-types" class="btn">Cancel</a>
+</form>
+{% endmatch %}
+{% endblock %}

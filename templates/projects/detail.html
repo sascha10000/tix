@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} - Settings{% endblock %}
+
+{% block content %}
+<h1>{{ project.name }}</h1>
+<p>{{ project.description }}</p>
+<a href="/projects/{{ project.id }}/tickets" class="btn">View Tickets</a>
+{% if can_manage %}
+<a href="/projects/{{ project.id }}/edit" class="btn">Edit Project</a>
+{% endif %}
+{% if can_delete %}
+<form method="post" action="/projects/{{ project.id }}/delete" style="display:inline">
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this project and all its data?')">Delete Project</button>
+</form>
+{% endif %}
+
+{% if can_manage %}
+<h2>Members</h2>
+<table>
+    <thead><tr><th>User</th><th>Role</th><th></th></tr></thead>
+    <tbody>
+        {% for m in members %}
+        <tr>
+            <td>{{ m.username }}</td>
+            <td>{{ m.role }}</td>
+            <td>
+                <form method="post" action="/projects/{{ project.id }}/members/{{ m.id }}/remove" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<form method="post" action="/projects/{{ project.id }}/members" class="form-row">
+    <div class="form-group">
+        <label for="add-user">User</label>
+        <select name="user_id" id="add-user">
+            {% for u in all_users %}
+            <option value="{{ u.id }}">{{ u.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="add-role">Role</label>
+        <select name="role" id="add-role">
+            <option value="manager">Manager</option>
+            <option value="member">Member</option>
+            <option value="reporter">Reporter</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label style="visibility:hidden">_</label>
+        <button type="submit" class="btn btn-sm">Add</button>
+    </div>
+</form>
+
+<h2>Active Statuses</h2>
+<div class="toggle-list">
+    {% for s in statuses %}
+    <form method="post" action="/projects/{{ project.id }}/statuses" style="display:inline">
+        <input type="hidden" name="status_id" value="{{ s.id }}">
+        <button type="submit" class="toggle-btn {% if s.active %}active{% endif %}">
+            <span class="badge" style="background-color: {{ s.color }}">{{ s.name }}</span>
+        </button>
+    </form>
+    {% endfor %}
+</div>
+
+<h2>Active Ticket Types</h2>
+<div class="toggle-list">
+    {% for t in ticket_types %}
+    <form method="post" action="/projects/{{ project.id }}/ticket-types" style="display:inline">
+        <input type="hidden" name="ticket_type_id" value="{{ t.id }}">
+        <button type="submit" class="toggle-btn {% if t.active %}active{% endif %}">
+            {{ t.name }}
+        </button>
+    </form>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

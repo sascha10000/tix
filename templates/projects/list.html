@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<h1>Projects</h1>
+{% if can_create %}
+<a href="/projects/new" class="btn btn-primary">New Project</a>
+{% endif %}
+
+{% if projects.is_empty() %}
+<p>No projects available.</p>
+{% else %}
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in projects %}
+        <tr>
+            <td><a href="/projects/{{ p.id }}/tickets">{{ p.name }}</a></td>
+            <td>{{ p.description }}</td>
+            <td>
+                <a href="/projects/{{ p.id }}" class="btn btn-sm">Settings</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

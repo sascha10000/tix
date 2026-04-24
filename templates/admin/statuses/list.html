@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Statuses - Admin{% endblock %}
+
+{% block content %}
+<h1>Statuses</h1>
+<a href="/admin/statuses/new" class="btn btn-primary">New Status</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Color</th>
+            <th>Position</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in statuses %}
+        <tr>
+            <td><span class="badge" style="background-color: {{ s.color }}">{{ s.name }}</span></td>
+            <td>{{ s.color }}</td>
+            <td>{{ s.position }}</td>
+            <td>
+                <a href="/admin/statuses/{{ s.id }}/edit" class="btn btn-sm">Edit</a>
+                <form method="post" action="/admin/statuses/{{ s.id }}/delete" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if !statuses.is_empty() %}
+<h2>Workflow Transitions</h2>
+<p>Check a cell to allow transition from row status to column status.</p>
+<table class="workflow-matrix">
+    <thead>
+        <tr>
+            <th>From \ To</th>
+            {% for s in statuses %}
+            <th><span class="badge" style="background-color: {{ s.color }}">{{ s.name }}</span></th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for (i, from_status) in statuses.iter().enumerate() %}
+        <tr>
+            <td><span class="badge" style="background-color: {{ from_status.color }}">{{ from_status.name }}</span></td>
+            {% for (j, to_status) in statuses.iter().enumerate() %}
+            <td>
+                {% if i != j %}
+                <form method="post" action="/admin/workflows" style="display:inline">
+                    <input type="hidden" name="from_id" value="{{ from_status.id }}">
+                    <input type="hidden" name="to_id" value="{{ to_status.id }}">
+                    <button type="submit" class="workflow-toggle {% if workflow_matrix[i][j] %}active{% endif %}">
+                        {% if workflow_matrix[i][j] %}&#10003;{% else %}&nbsp;{% endif %}
+                    </button>
+                </form>
+                {% else %}
+                <span class="workflow-self">-</span>
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

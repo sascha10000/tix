@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{% if edit.is_some() %}Edit{% else %}New{% endif %} Project{% endblock %}
+
+{% block content %}
+<h1>{% if edit.is_some() %}Edit{% else %}New{% endif %} Project</h1>
+{% match edit %}
+{% when Some with (p) %}
+<form method="post" action="/projects/{{ p.id }}/edit">
+    <label>Name <input type="text" name="name" value="{{ p.name }}" required></label>
+    <label>Description <textarea name="description">{{ p.description }}</textarea></label>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/projects/{{ p.id }}" class="btn">Cancel</a>
+</form>
+{% when None %}
+<form method="post" action="/projects">
+    <label>Name <input type="text" name="name" required autofocus></label>
+    <label>Description <textarea name="description"></textarea></label>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a href="/projects" class="btn">Cancel</a>
+</form>
+{% endmatch %}
+{% endblock %}

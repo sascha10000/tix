@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}New User - Admin{% endblock %}
+
+{% block content %}
+<h1>New User</h1>
+{% if let Some(err) = error %}
+<div class="alert alert-error">{{ err }}</div>
+{% endif %}
+<form method="post" action="/admin/users">
+    <label>Username <input type="text" name="username" required autofocus></label>
+    <label>Email <input type="email" name="email" required></label>
+    <label>Password <input type="password" name="password" required minlength="4"></label>
+    <label>
+        <input type="checkbox" name="is_admin">
+        Admin
+    </label>
+    <label>
+        <input type="checkbox" name="is_manager">
+        Manager
+    </label>
+    <button type="submit" class="btn btn-primary">Create User</button>
+    <a href="/admin/users" class="btn">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - tix.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="auth-page">
+        <div class="nav-brand" style="text-align:center;margin-bottom:1.5rem;font-size:24px">tix<span class="brand-dot">.</span></div>
+        <h1>Login</h1>
+        {% if let Some(err) = error %}
+        <div class="alert alert-error">{{ err }}</div>
+        {% endif %}
+        <form method="post" action="/login">
+            <label>Username
+                <input type="text" name="username" required autofocus>
+            </label>
+            <label>Password
+                <input type="password" name="password" required>
+            </label>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Login</button>
+        </form>
+        <p>Don't have an account? <a href="/register">Register</a></p>
+    </main>
+</body>
+</html>

@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket - {{ project_name }}{% endblock %}
+
+{% block content %}
+<h1>{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket</h1>
+
+{% match edit %}
+{% when Some with (t) %}
+<form method="post" action="/projects/{{ project_id }}/tickets/{{ t.id }}/edit">
+    <label>Title <input type="text" name="title" value="{{ t.title }}" required></label>
+    <label>Description <textarea name="text" rows="5">{{ t.text }}</textarea></label>
+
+    <label>Assignee
+        <select name="assignee_id" required>
+            <option value="">-- Select assignee --</option>
+            {% for m in project_members %}
+            <option value="{{ m.id }}" {% if t.assignee_id.to_string() == m.id %}selected{% endif %}>{{ m.label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Due Date <input type="date" name="due_date" value="{{ t.due_date }}" required></label>
+
+    <input type="hidden" name="ticket_type_id" value="{{ t.ticket_type_id }}">
+    <input type="hidden" name="status_id" value="{{ t.status_id }}">
+
+    {% for f in fields %}
+    <label>{{ f.name }}
+        {% if f.field_type == "textarea" %}
+        <textarea name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>{{ f.value }}</textarea>
+        {% else if f.field_type == "number" %}
+        <input type="number" name="field_{{ f.id }}" value="{{ f.value }}"
+            {% if let Some(min) = f.num_min %}min="{{ min }}"{% endif %}
+            {% if let Some(max) = f.num_max %}max="{{ max }}"{% endif %}
+            {% if let Some(step) = f.num_step %}step="{{ step }}"{% endif %}
+            {% if f.is_required %}required{% endif %}>
+        {% else if f.field_type == "date" %}
+        <input type="date" name="field_{{ f.id }}" value="{{ f.value }}" {% if f.is_required %}required{% endif %}>
+        {% else if f.field_type == "user" %}
+        <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+            <option value="">-- Select user --</option>
+            {% for m in project_members %}
+            <option value="{{ m.id }}" {% if f.value == m.id %}selected{% endif %}>{{ m.label }}</option>
+            {% endfor %}
+        </select>
+        {% else if f.field_type == "ticket" %}
+        <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+            <option value="">-- Select ticket --</option>
+            {% for tk in project_tickets %}
+            <option value="{{ tk.id }}" {% if f.value == tk.id %}selected{% endif %}>{{ tk.label }}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+        <input type="text" name="field_{{ f.id }}" value="{{ f.value }}" {% if f.is_required %}required{% endif %}>
+        {% endif %}
+    </label>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/projects/{{ project_id }}/tickets/{{ t.id }}" class="btn">Cancel</a>
+</form>
+
+{% when None %}
+
+{% if selected_type_id.is_none() && !ticket_types.is_empty() %}
+<p>Select a ticket type:</p>
+{% for tt in ticket_types %}
+<a href="/projects/{{ project_id }}/tickets/new?type_id={{ tt.id }}" class="btn">{{ tt.name }}</a>
+{% endfor %}
+{% else if ticket_types.is_empty() %}
+<p>No ticket types are activated for this project. Ask an admin to configure the project first.</p>
+{% else %}
+<form method="post" action="/projects/{{ project_id }}/tickets">
+    <label>Title <input type="text" name="title" required autofocus></label>
+    <label>Description <textarea name="text" rows="5"></textarea></label>
+
+    <label>Assignee
+        <select name="assignee_id" required>
+            <option value="">-- Select assignee --</option>
+            {% for m in project_members %}
+            <option value="{{ m.id }}">{{ m.label }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>Due Date <input type="date" name="due_date" required></label>
+
+    <input type="hidden" name="ticket_type_id" value="{{ selected_type_id.unwrap() }}">
+
+    <label>Initial Status
+        <select name="status_id">
+            {% for s in statuses %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+
+    {% for f in fields %}
+    <label>{{ f.name }}
+        {% if f.field_type == "textarea" %}
+        <textarea name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}></textarea>
+        {% else if f.field_type == "number" %}
+        <input type="number" name="field_{{ f.id }}"
+            {% if let Some(min) = f.num_min %}min="{{ min }}"{% endif %}
+            {% if let Some(max) = f.num_max %}max="{{ max }}"{% endif %}
+            {% if let Some(step) = f.num_step %}step="{{ step }}"{% endif %}
+            {% if f.is_required %}required{% endif %}>
+        {% else if f.field_type == "date" %}
+        <input type="date" name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+        {% else if f.field_type == "user" %}
+        <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+            <option value="">-- Select user --</option>
+            {% for m in project_members %}
+            <option value="{{ m.id }}">{{ m.label }}</option>
+            {% endfor %}
+        </select>
+        {% else if f.field_type == "ticket" %}
+        <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+            <option value="">-- Select ticket --</option>
+            {% for tk in project_tickets %}
+            <option value="{{ tk.id }}">{{ tk.label }}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+        <input type="text" name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+        {% endif %}
+    </label>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Create Ticket</button>
+    <a href="/projects/{{ project_id }}/tickets" class="btn">Cancel</a>
+</form>
+{% endif %}
+
+{% endmatch %}
+{% endblock %}

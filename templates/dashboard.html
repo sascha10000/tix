@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Ticket System{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<p>Welcome, {{ user.username }}!</p>
+
+<h2>Your Projects</h2>
+{% if projects.is_empty() %}
+<p>No projects yet.{% if user.is_admin() %} <a href="/projects/new">Create one</a>.{% endif %}</p>
+{% else %}
+<table>
+    <thead>
+        <tr>
+            <th>Project</th>
+            <th>Description</th>
+            <th>Tickets</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in projects %}
+        <tr>
+            <td><a href="/projects/{{ p.id }}/tickets">{{ p.name }}</a></td>
+            <td>{{ p.description }}</td>
+            <td>{{ p.ticket_count }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket Types - Admin{% endblock %}
+
+{% block content %}
+<h1>Ticket Types</h1>
+<a href="/admin/ticket-types/new" class="btn btn-primary">New Type</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Fields</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in ticket_types %}
+        <tr>
+            <td>{{ t.name }}</td>
+            <td>{{ t.description }}</td>
+            <td>{{ t.field_count }}</td>
+            <td><a href="/admin/ticket-types/{{ t.id }}/edit" class="btn btn-sm">Edit</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

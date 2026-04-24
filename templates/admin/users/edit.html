@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - Admin{% endblock %}
+
+{% block content %}
+<h1>Edit User: {{ edit_user.username }}</h1>
+<form method="post" action="/admin/users/{{ edit_user.id }}/edit">
+    <label>Username <input type="text" name="username" value="{{ edit_user.username }}" required></label>
+    <label>Email <input type="email" name="email" value="{{ edit_user.email }}" required></label>
+    <label>
+        <input type="checkbox" name="is_admin" {% if edit_user.is_admin %}checked{% endif %}>
+        Admin
+    </label>
+    <label>
+        <input type="checkbox" name="is_manager" {% if edit_user.is_manager %}checked{% endif %}>
+        Manager
+    </label>
+    <label>
+        <input type="checkbox" name="is_active" {% if edit_user.is_active %}checked{% endif %}>
+        Active
+    </label>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/admin/users" class="btn">Cancel</a>
+</form>
+{% endblock %}
