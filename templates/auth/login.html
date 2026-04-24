@@ -7,11 +7,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark";</script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <main class="auth-page">
-        <div class="nav-brand" style="text-align:center;margin-bottom:1.5rem;font-size:24px">tix<span class="brand-dot">.</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+            <div class="nav-brand" style="font-size:24px">tix<span class="brand-dot">.</span></div>
+            <button class="theme-toggle" onclick="(function(){var t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;localStorage.setItem('theme',t)})()" aria-label="Toggle theme">
+                <svg class="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <svg class="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            </button>
+        </div>
         <h1>Login</h1>
         {% if let Some(err) = error %}
         <div class="alert alert-error">{{ err }}</div>
