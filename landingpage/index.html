@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tix. — Ticket management, distilled</title>
+    <meta name="description" content="A self-hosted, lightweight ticket system built with Rust. Single binary, SQLite, zero dependencies.">
+    <script>document.documentElement.dataset.theme=localStorage.getItem("theme")||"dark";</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Tokens ── */
+        :root {
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius: 2px;
+        }
+
+        :root, [data-theme="dark"] {
+            --c-bg: #0f0f0f;
+            --c-surface: #1a1a1a;
+            --c-surface-raised: #222222;
+            --c-surface-hover: #2a2a2a;
+            --c-border: #333333;
+            --c-border-subtle: #2a2a2a;
+            --c-text: #e8e8e8;
+            --c-text-secondary: #999999;
+            --c-text-tertiary: #666666;
+            --c-text-inverse: #0f0f0f;
+            --c-accent: #d97706;
+            --c-accent-hover: #f59e0b;
+            --c-accent-muted: rgba(217, 119, 6, 0.15);
+            --c-accent-glow: rgba(217, 119, 6, 0.06);
+            --c-success: #22c55e;
+            --c-success-muted: rgba(34, 197, 94, 0.15);
+            --c-hero-gradient: linear-gradient(165deg, #1a1a1a 0%, #0f0f0f 40%, #1a1206 100%);
+            --c-noise-opacity: 0.03;
+            color-scheme: dark;
+        }
+
+        [data-theme="light"] {
+            --c-bg: #f4f3f0;
+            --c-surface: #ffffff;
+            --c-surface-raised: #eae9e6;
+            --c-surface-hover: #e0dfdb;
+            --c-border: #c8c6c0;
+            --c-border-subtle: #d8d7d3;
+            --c-text: #1a1a1a;
+            --c-text-secondary: #555555;
+            --c-text-tertiary: #888888;
+            --c-text-inverse: #ffffff;
+            --c-accent: #b45309;
+            --c-accent-hover: #d97706;
+            --c-accent-muted: rgba(180, 83, 9, 0.10);
+            --c-accent-glow: rgba(180, 83, 9, 0.04);
+            --c-success: #16a34a;
+            --c-success-muted: rgba(22, 163, 74, 0.10);
+            --c-hero-gradient: linear-gradient(165deg, #ffffff 0%, #f4f3f0 40%, #fef6e8 100%);
+            --c-noise-opacity: 0.02;
+            color-scheme: light;
+        }
+
+        /* ── Reset ── */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--c-text);
+            background: var(--c-bg);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        ::selection { background: var(--c-accent); color: var(--c-text-inverse); }
+        a { color: var(--c-accent); text-decoration: none; transition: color 0.15s; }
+        a:hover { color: var(--c-accent-hover); }
+
+        /* ── Navigation ── */
+        .lp-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--c-border-subtle);
+        }
+
+        [data-theme="light"] .lp-nav {
+            background: rgba(244, 243, 240, 0.85);
+        }
+
+        .lp-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .lp-brand {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--c-text);
+            letter-spacing: -0.03em;
+            text-decoration: none;
+        }
+
+        .lp-brand .dot { color: var(--c-accent); }
+
+        .lp-nav-links {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .lp-nav-links a {
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--c-text-secondary);
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius);
+            letter-spacing: 0.01em;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .lp-nav-links a:hover {
+            color: var(--c-text);
+            background: var(--c-surface-hover);
+        }
+
+        .lp-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            background: transparent;
+            border: 1px solid var(--c-border);
+            border-radius: var(--radius);
+            color: var(--c-text-tertiary);
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+        }
+
+        .theme-toggle:hover {
+            color: var(--c-accent);
+            border-color: var(--c-accent);
+            background: var(--c-accent-muted);
+        }
+
+        .theme-toggle svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .theme-icon-moon,
+        [data-theme="light"] .theme-icon-sun { display: none; }
+        [data-theme="light"] .theme-icon-moon { display: block; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1.25rem;
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            border-radius: var(--radius);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--c-accent);
+            color: var(--c-text-inverse);
+            border-color: var(--c-accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--c-accent-hover);
+            border-color: var(--c-accent-hover);
+            color: var(--c-text-inverse);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--c-text);
+            border-color: var(--c-border);
+        }
+
+        .btn-outline:hover {
+            background: var(--c-surface-hover);
+            border-color: var(--c-text-tertiary);
+            color: var(--c-text);
+        }
+
+        .btn-lg {
+            padding: 0.75rem 2rem;
+            font-size: 15px;
+        }
+
+        /* ── Hero ── */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 2rem 6rem;
+            background: var(--c-hero-gradient);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 200px;
+            opacity: var(--c-noise-opacity);
+            pointer-events: none;
+        }
+
+        /* Amber glow orb */
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--c-accent-muted) 0%, transparent 70%);
+            top: 20%;
+            right: -10%;
+            pointer-events: none;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, 15px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            text-align: center;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--c-accent);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 2rem;
+            padding: 0.375rem 1rem;
+            background: var(--c-accent-muted);
+            border: 1px solid rgba(217, 119, 6, 0.2);
+            border-radius: var(--radius);
+        }
+
+        [data-theme="light"] .hero-tag {
+            border-color: rgba(180, 83, 9, 0.25);
+        }
+
+        .hero-tag svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(38px, 6vw, 64px);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            color: var(--c-text);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+            color: var(--c-accent);
+        }
+
+        .hero-sub {
+            font-family: var(--font-body);
+            font-size: 18px;
+            line-height: 1.7;
+            color: var(--c-text-secondary);
+            max-width: 520px;
+            margin: 0 auto 2.5rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .hero-terminal {
+            position: relative;
+            margin-top: 4rem;
+            max-width: 480px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            background: var(--c-surface);
+            border: 1px solid var(--c-border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .hero-terminal-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.625rem 1rem;
+            background: var(--c-surface-raised);
+            border-bottom: 1px solid var(--c-border-subtle);
+        }
+
+        .hero-terminal-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--c-border);
+        }
+
+        .hero-terminal-title {
+            flex: 1;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--c-text-tertiary);
+        }
+
+        .hero-terminal-body {
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--c-text-secondary);
+        }
+
+        .hero-terminal-body .prompt { color: var(--c-accent); }
+        .hero-terminal-body .cmd { color: var(--c-text); }
+        .hero-terminal-body .out { color: var(--c-text-tertiary); }
+        .hero-terminal-body .highlight { color: var(--c-success); }
+
+        /* ── Section base ── */
+        section {
+            padding: 6rem 2rem;
+        }
+
+        .section-inner {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--c-accent);
+            margin-bottom: 0.75rem;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(26px, 4vw, 36px);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            color: var(--c-text);
+            margin-bottom: 1rem;
+        }
+
+        .section-desc {
+            font-size: 16px;
+            color: var(--c-text-secondary);
+            max-width: 520px;
+            line-height: 1.7;
+            margin-bottom: 3rem;
+        }
+
+        /* ── Features Grid ── */
+        .features {
+            background: var(--c-bg);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--c-border-subtle);
+            border: 1px solid var(--c-border-subtle);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .feature-card {
+            background: var(--c-surface);
+            padding: 2rem;
+            transition: background 0.2s;
+        }
+
+        .feature-card:hover {
+            background: var(--c-surface-hover);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--c-accent-muted);
+            border: 1px solid rgba(217, 119, 6, 0.15);
+            border-radius: var(--radius);
+            margin-bottom: 1.25rem;
+            color: var(--c-accent);
+        }
+
+        [data-theme="light"] .feature-icon {
+            border-color: rgba(180, 83, 9, 0.15);
+        }
+
+        .feature-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--c-text);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        .feature-card p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--c-text-secondary);
+        }
+
+        /* ── How it works ── */
+        .how-it-works {
+            background: var(--c-surface);
+            border-top: 1px solid var(--c-border-subtle);
+            border-bottom: 1px solid var(--c-border-subtle);
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            counter-reset: step;
+        }
+
+        .step {
+            position: relative;
+            counter-increment: step;
+        }
+
+        .step::before {
+            content: counter(step, decimal-leading-zero);
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--c-border);
+            letter-spacing: -0.03em;
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+
+        .step h3 {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--c-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .step p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--c-text-secondary);
+        }
+
+        /* ── Architecture ── */
+        .architecture {
+            background: var(--c-bg);
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .arch-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .arch-layer {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: var(--c-surface);
+            border: 1px solid var(--c-border-subtle);
+            border-left: 3px solid var(--c-accent);
+            border-radius: var(--radius);
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .arch-layer:hover {
+            border-color: var(--c-accent);
+            background: var(--c-surface-hover);
+        }
+
+        .arch-layer-name {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--c-text);
+            min-width: 110px;
+        }
+
+        .arch-layer-tech {
+            font-family: var(--font-body);
+            font-size: 13px;
+            color: var(--c-text-tertiary);
+        }
+
+        .arch-text h3 {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--c-text);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .arch-text p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--c-text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .arch-text ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 1.25rem;
+        }
+
+        .arch-text li {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--c-text-secondary);
+            padding: 0.375rem 0;
+            border-bottom: 1px solid var(--c-border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arch-text li::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--c-accent);
+            border-radius: 1px;
+            flex-shrink: 0;
+        }
+
+        /* ── CTA ── */
+        .cta {
+            text-align: center;
+            padding: 8rem 2rem;
+            background: var(--c-surface);
+            border-top: 1px solid var(--c-border-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--c-accent-glow) 0%, transparent 70%);
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+
+        .cta .section-title {
+            position: relative;
+        }
+
+        .cta .section-desc {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-actions {
+            position: relative;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-code {
+            position: relative;
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 0.625rem 1.25rem;
+            background: var(--c-bg);
+            border: 1px solid var(--c-border);
+            border-radius: var(--radius);
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--c-text-secondary);
+        }
+
+        .cta-code .prompt { color: var(--c-accent); }
+        .cta-code .cmd { color: var(--c-text); }
+
+        /* ── Footer ── */
+        footer {
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--c-border-subtle);
+            background: var(--c-bg);
+        }
+
+        .footer-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+
+        .footer-brand {
+            font-family: var(--font-mono);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--c-text-tertiary);
+            letter-spacing: -0.03em;
+        }
+
+        .footer-brand .dot { color: var(--c-accent); }
+
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .footer-links a {
+            font-family: var(--font-display);
+            font-size: 13px;
+            color: var(--c-text-tertiary);
+            transition: color 0.15s;
+        }
+
+        .footer-links a:hover { color: var(--c-text); }
+
+        .footer-copy {
+            font-size: 12px;
+            color: var(--c-text-tertiary);
+            font-family: var(--font-mono);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .lp-nav-links { display: none; }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .arch-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        /* ── Fade-in animation ── */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="lp-nav">
+    <div class="lp-nav-left">
+        <a href="#" class="lp-brand">tix<span class="dot">.</span></a>
+        <div class="lp-nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#architecture">Architecture</a>
+        </div>
+    </div>
+    <div class="lp-nav-right">
+        <button class="theme-toggle" onclick="(function(){var t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;localStorage.setItem('theme',t)})()" aria-label="Toggle theme">
+            <svg class="theme-icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <svg class="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+        <a href="#get-started" class="btn btn-primary">Get Started</a>
+    </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-tag">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Self-hosted &middot; Single binary &middot; Zero config
+        </div>
+        <h1>Ticket management,<br><em>distilled.</em></h1>
+        <p class="hero-sub">
+            A fast, self-hosted ticket system built with Rust. Ships as one binary, runs on SQLite.
+            No containers, no infrastructure team, no complexity tax.
+        </p>
+        <div class="hero-actions">
+            <a href="#get-started" class="btn btn-primary btn-lg">Get Started</a>
+            <a href="#features" class="btn btn-outline btn-lg">See Features</a>
+        </div>
+        <div class="hero-terminal">
+            <div class="hero-terminal-bar">
+                <span class="hero-terminal-dot"></span>
+                <span class="hero-terminal-dot"></span>
+                <span class="hero-terminal-dot"></span>
+                <span class="hero-terminal-title">terminal</span>
+            </div>
+            <div class="hero-terminal-body">
+                <div><span class="prompt">$</span> <span class="cmd">cargo build --release</span></div>
+                <div><span class="out">&nbsp;&nbsp;Compiling ticketsystem v0.1.0</span></div>
+                <div><span class="out">&nbsp;&nbsp;Finished release [optimized]</span></div>
+                <div>&nbsp;</div>
+                <div><span class="prompt">$</span> <span class="cmd">./target/release/ticketsystem</span></div>
+                <div><span class="highlight">Server running at http://127.0.0.1:8080</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Features ── -->
+<section class="features" id="features">
+    <div class="section-inner">
+        <div class="section-label">Features</div>
+        <div class="section-title">Everything you need.<br>Nothing you don't.</div>
+        <p class="section-desc">Built for teams that want structure without ceremony. Every feature earns its place.</p>
+
+        <div class="features-grid">
+            <div class="feature-card fade-in">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+                </div>
+                <h3>Custom Ticket Types</h3>
+                <p>Define Bug, Feature, Task, or anything else. Each type gets its own fields, configured by you.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></svg>
+                </div>
+                <h3>Assignees &amp; Due Dates</h3>
+                <p>Every ticket requires an owner and a deadline. No ambiguity about who does what, by when.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                </div>
+                <h3>Custom Fields</h3>
+                <p>Text, numbers, dates, user references, ticket links. Attach structured data to any ticket type.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </div>
+                <h3>Workflow Engine</h3>
+                <p>Define allowed status transitions with a visual matrix. Enforce process without code.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <h3>Project Roles</h3>
+                <p>Manager, Member, Reporter. Scoped per project. Admins see everything; everyone else sees what they should.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                </div>
+                <h3>Per-Project Config</h3>
+                <p>Activate specific statuses and ticket types per project. Same system, different workflows.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="how-it-works" id="how-it-works">
+    <div class="section-inner">
+        <div class="section-label">Setup</div>
+        <div class="section-title">Running in four steps.</div>
+        <p class="section-desc">From zero to tracking tickets in under five minutes.</p>
+
+        <div class="steps">
+            <div class="step fade-in">
+                <h3>Build</h3>
+                <p>Clone the repo and run <code style="font-family:var(--font-mono);font-size:12px;color:var(--c-accent)">cargo build --release</code>. One binary, no Docker required.</p>
+            </div>
+            <div class="step fade-in">
+                <h3>Configure</h3>
+                <p>Copy <code style="font-family:var(--font-mono);font-size:12px;color:var(--c-accent)">.env.example</code> to <code style="font-family:var(--font-mono);font-size:12px;color:var(--c-accent)">.env</code>. Set your admin credentials and bind address.</p>
+            </div>
+            <div class="step fade-in">
+                <h3>Launch</h3>
+                <p>Run the binary. The database, schema, and admin user are created automatically on first start.</p>
+            </div>
+            <div class="step fade-in">
+                <h3>Organize</h3>
+                <p>Create statuses, define ticket types, set up projects, invite your team. Start tracking work.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Architecture ── -->
+<section class="architecture" id="architecture">
+    <div class="section-inner">
+        <div class="section-label">Architecture</div>
+        <div class="section-title">Simple stack. No surprises.</div>
+        <p class="section-desc">Every layer chosen for reliability and zero operational overhead.</p>
+
+        <div class="arch-grid">
+            <div class="arch-stack fade-in">
+                <div class="arch-layer">
+                    <span class="arch-layer-name">Server</span>
+                    <span class="arch-layer-tech">Actix-web (Rust)</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="arch-layer-name">Templates</span>
+                    <span class="arch-layer-tech">Askama (compile-time)</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="arch-layer-name">Database</span>
+                    <span class="arch-layer-tech">SQLite + r2d2 pool</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="arch-layer-name">Auth</span>
+                    <span class="arch-layer-tech">Argon2 + session cookies</span>
+                </div>
+                <div class="arch-layer">
+                    <span class="arch-layer-name">Assets</span>
+                    <span class="arch-layer-tech">Embedded in binary</span>
+                </div>
+            </div>
+            <div class="arch-text fade-in">
+                <h3>One binary. One file. Done.</h3>
+                <p>
+                    The entire application compiles to a single executable. CSS is embedded at build time.
+                    The database is a single SQLite file with WAL mode enabled. Migrations run automatically.
+                </p>
+                <p>There is no build pipeline, no runtime, no container orchestration. Deploy it anywhere you can run a binary.</p>
+                <ul>
+                    <li>No Node.js, no npm, no webpack</li>
+                    <li>No Postgres, no Redis, no message queue</li>
+                    <li>No Docker required (but works in one if you want)</li>
+                    <li>Backup = copy one .db file</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta" id="get-started">
+    <div class="section-inner">
+        <div class="section-label">Get Started</div>
+        <div class="section-title fade-in">Ready to ship?</div>
+        <p class="section-desc fade-in">Three commands. No credit card. No vendor lock-in. Your data stays on your server.</p>
+        <div class="cta-actions fade-in">
+            <a href="https://github.com" class="btn btn-primary btn-lg">View on GitHub</a>
+            <a href="#architecture" class="btn btn-outline btn-lg">Read the Docs</a>
+        </div>
+        <div class="cta-code fade-in">
+            <span class="prompt">$</span> <span class="cmd">git clone &amp;&amp; cargo build --release &amp;&amp; ./target/release/ticketsystem</span>
+        </div>
+    </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+    <div class="footer-inner">
+        <span class="footer-brand">tix<span class="dot">.</span></span>
+        <div class="footer-links">
+            <a href="#features">Features</a>
+            <a href="#architecture">Architecture</a>
+            <a href="https://github.com">GitHub</a>
+        </div>
+        <span class="footer-copy">Built with Rust + SQLite</span>
+    </div>
+</footer>
+
+<!-- ── Scroll animation ── -->
+<script>
+(function() {
+    var els = document.querySelectorAll('.fade-in');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function(el) { el.classList.add('visible'); });
+        return;
+    }
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                obs.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.15 });
+    els.forEach(function(el) { obs.observe(el); });
+})();
+</script>
+
+</body>
+</html>
