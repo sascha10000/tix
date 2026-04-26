@@ -1,29 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket - {{ project_name }}{% endblock %}
+{% block title %}{% if edit.is_some() %}{{ t.tickets.edit_title }}{% else %}{{ t.tickets.new_title }}{% endif %} - {{ project_name }}{% endblock %}
 
 {% block content %}
-<h1>{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket</h1>
+<h1>{% if edit.is_some() %}{{ t.tickets.edit_title }}{% else %}{{ t.tickets.new_title }}{% endif %}</h1>
 
 {% match edit %}
-{% when Some with (t) %}
-<form method="post" action="/projects/{{ project_id }}/tickets/{{ t.id }}/edit">
-    <label>Title <input type="text" name="title" value="{{ t.title }}" required></label>
-    <label>Description <textarea name="text" rows="5">{{ t.text }}</textarea></label>
+{% when Some with (ticket) %}
+<form method="post" action="/projects/{{ project_id }}/tickets/{{ ticket.id }}/edit">
+    <label>{{ t.tickets.title_label }} <input type="text" name="title" value="{{ ticket.title }}" required></label>
+    <label>{{ t.tickets.description_label }} <textarea name="text" rows="5">{{ ticket.text }}</textarea></label>
 
-    <label>Assignee
+    <label>{{ t.tickets.assignee_label }}
         <select name="assignee_id" required>
-            <option value="">-- Select assignee --</option>
+            <option value="">{{ t.tickets.select_assignee }}</option>
             {% for m in project_members %}
-            <option value="{{ m.id }}" {% if t.assignee_id.to_string() == m.id %}selected{% endif %}>{{ m.label }}</option>
+            <option value="{{ m.id }}" {% if ticket.assignee_id.to_string() == m.id %}selected{% endif %}>{{ m.label }}</option>
             {% endfor %}
         </select>
     </label>
 
-    <label>Due Date <input type="date" name="due_date" value="{{ t.due_date }}" required></label>
+    <label>{{ t.tickets.due_date_label }} <input type="date" name="due_date" value="{{ ticket.due_date }}" required></label>
 
-    <input type="hidden" name="ticket_type_id" value="{{ t.ticket_type_id }}">
-    <input type="hidden" name="status_id" value="{{ t.status_id }}">
+    <input type="hidden" name="ticket_type_id" value="{{ ticket.ticket_type_id }}">
+    <input type="hidden" name="status_id" value="{{ ticket.status_id }}">
 
     {% for f in fields %}
     <label>{{ f.name }}
@@ -39,14 +39,14 @@
         <input type="date" name="field_{{ f.id }}" value="{{ f.value }}" {% if f.is_required %}required{% endif %}>
         {% else if f.field_type == "user" %}
         <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
-            <option value="">-- Select user --</option>
+            <option value="">{{ t.tickets.select_user }}</option>
             {% for m in project_members %}
             <option value="{{ m.id }}" {% if f.value == m.id %}selected{% endif %}>{{ m.label }}</option>
             {% endfor %}
         </select>
         {% else if f.field_type == "ticket" %}
         <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
-            <option value="">-- Select ticket --</option>
+            <option value="">{{ t.tickets.select_ticket }}</option>
             {% for tk in project_tickets %}
             <option value="{{ tk.id }}" {% if f.value == tk.id %}selected{% endif %}>{{ tk.label }}</option>
             {% endfor %}
@@ -57,38 +57,38 @@
     </label>
     {% endfor %}
 
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="/projects/{{ project_id }}/tickets/{{ t.id }}" class="btn">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ t.common.save }}</button>
+    <a href="/projects/{{ project_id }}/tickets/{{ ticket.id }}" class="btn">{{ t.common.cancel }}</a>
 </form>
 
 {% when None %}
 
 {% if selected_type_id.is_none() && !ticket_types.is_empty() %}
-<p>Select a ticket type:</p>
+<p>{{ t.tickets.select_type }}</p>
 {% for tt in ticket_types %}
 <a href="/projects/{{ project_id }}/tickets/new?type_id={{ tt.id }}" class="btn">{{ tt.name }}</a>
 {% endfor %}
 {% else if ticket_types.is_empty() %}
-<p>No ticket types are activated for this project. Ask an admin to configure the project first.</p>
+<p>{{ t.tickets.no_types_active }}</p>
 {% else %}
 <form method="post" action="/projects/{{ project_id }}/tickets">
-    <label>Title <input type="text" name="title" required autofocus></label>
-    <label>Description <textarea name="text" rows="5"></textarea></label>
+    <label>{{ t.tickets.title_label }} <input type="text" name="title" required autofocus></label>
+    <label>{{ t.tickets.description_label }} <textarea name="text" rows="5"></textarea></label>
 
-    <label>Assignee
+    <label>{{ t.tickets.assignee_label }}
         <select name="assignee_id" required>
-            <option value="">-- Select assignee --</option>
+            <option value="">{{ t.tickets.select_assignee }}</option>
             {% for m in project_members %}
             <option value="{{ m.id }}">{{ m.label }}</option>
             {% endfor %}
         </select>
     </label>
 
-    <label>Due Date <input type="date" name="due_date" required></label>
+    <label>{{ t.tickets.due_date_label }} <input type="date" name="due_date" required></label>
 
     <input type="hidden" name="ticket_type_id" value="{{ selected_type_id.unwrap() }}">
 
-    <label>Initial Status
+    <label>{{ t.tickets.initial_status }}
         <select name="status_id">
             {% for s in statuses %}
             <option value="{{ s.id }}">{{ s.name }}</option>
@@ -110,14 +110,14 @@
         <input type="date" name="field_{{ f.id }}" value="{{ f.value }}" {% if f.is_required %}required{% endif %}>
         {% else if f.field_type == "user" %}
         <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
-            <option value="">-- Select user --</option>
+            <option value="">{{ t.tickets.select_user }}</option>
             {% for m in project_members %}
             <option value="{{ m.id }}">{{ m.label }}</option>
             {% endfor %}
         </select>
         {% else if f.field_type == "ticket" %}
         <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
-            <option value="">-- Select ticket --</option>
+            <option value="">{{ t.tickets.select_ticket }}</option>
             {% for tk in project_tickets %}
             <option value="{{ tk.id }}">{{ tk.label }}</option>
             {% endfor %}
@@ -128,8 +128,8 @@
     </label>
     {% endfor %}
 
-    <button type="submit" class="btn btn-primary">Create Ticket</button>
-    <a href="/projects/{{ project_id }}/tickets" class="btn">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ t.tickets.create_ticket }}</button>
+    <a href="/projects/{{ project_id }}/tickets" class="btn">{{ t.common.cancel }}</a>
 </form>
 {% endif %}
 

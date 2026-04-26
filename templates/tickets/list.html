@@ -1,39 +1,39 @@
 {% extends "base.html" %}
 
-{% block title %}Tickets - {{ project_name }}{% endblock %}
+{% block title %}{{ t.tickets.title }} - {{ project_name }}{% endblock %}
 
 {% block content %}
-<h1>{{ project_name }} - Tickets</h1>
-<a href="/projects/{{ project_id }}/tickets/new" class="btn btn-primary">New Ticket</a>
-<a href="/projects/{{ project_id }}" class="btn">Project Settings</a>
+<h1>{{ project_name }} - {{ t.tickets.title }}</h1>
+<a href="/projects/{{ project_id }}/tickets/new" class="btn btn-primary">{{ t.tickets.new_ticket }}</a>
+<a href="/projects/{{ project_id }}" class="btn">{{ t.tickets.project_settings }}</a>
 
 {% if tickets.is_empty() %}
-<p>No tickets yet.</p>
+<p>{{ t.tickets.no_tickets }}</p>
 {% else %}
 <table>
     <thead>
         <tr>
-            <th>#</th>
-            <th>Title</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Assignee</th>
-            <th>Due Date</th>
-            <th>Creator</th>
-            <th>Updated</th>
+            <th>{{ t.tickets.col_id }}</th>
+            <th>{{ t.tickets.col_title }}</th>
+            <th>{{ t.tickets.col_type }}</th>
+            <th>{{ t.tickets.col_status }}</th>
+            <th>{{ t.tickets.col_assignee }}</th>
+            <th>{{ t.tickets.col_due_date }}</th>
+            <th>{{ t.tickets.col_creator }}</th>
+            <th>{{ t.tickets.col_updated }}</th>
         </tr>
     </thead>
     <tbody>
-        {% for t in tickets %}
+        {% for tk in tickets %}
         <tr>
-            <td>{{ t.id }}</td>
-            <td><a href="/projects/{{ project_id }}/tickets/{{ t.id }}">{{ t.title }}</a></td>
-            <td>{{ t.type_name }}</td>
-            <td><span class="badge" style="background-color: {{ t.status_color }}">{{ t.status_name }}</span></td>
-            <td>{{ t.assignee_name }}</td>
-            <td>{{ t.due_date }}</td>
-            <td>{{ t.creator_name }}</td>
-            <td>{{ t.updated_at }}</td>
+            <td>{{ tk.id }}</td>
+            <td><a href="/projects/{{ project_id }}/tickets/{{ tk.id }}">{{ tk.title }}</a></td>
+            <td>{{ tk.type_name }}</td>
+            <td><span class="badge" style="background-color: {{ tk.status_color }}">{{ tk.status_name }}</span></td>
+            <td>{{ tk.assignee_name }}</td>
+            <td>{{ tk.due_date }}</td>
+            <td>{{ tk.creator_name }}</td>
+            <td>{{ tk.updated_at }}</td>
         </tr>
         {% endfor %}
     </tbody>

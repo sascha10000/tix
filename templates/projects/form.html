@@ -1,23 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}{% if edit.is_some() %}Edit{% else %}New{% endif %} Project{% endblock %}
+{% block title %}{% if edit.is_some() %}{{ t.projects.edit_title }}{% else %}{{ t.projects.new_title }}{% endif %}{% endblock %}
 
 {% block content %}
-<h1>{% if edit.is_some() %}Edit{% else %}New{% endif %} Project</h1>
+<h1>{% if edit.is_some() %}{{ t.projects.edit_title }}{% else %}{{ t.projects.new_title }}{% endif %}</h1>
 {% match edit %}
 {% when Some with (p) %}
 <form method="post" action="/projects/{{ p.id }}/edit">
-    <label>Name <input type="text" name="name" value="{{ p.name }}" required></label>
-    <label>Description <textarea name="description">{{ p.description }}</textarea></label>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="/projects/{{ p.id }}" class="btn">Cancel</a>
+    <label>{{ t.common.name }} <input type="text" name="name" value="{{ p.name }}" required></label>
+    <label>{{ t.common.description }} <textarea name="description">{{ p.description }}</textarea></label>
+    <button type="submit" class="btn btn-primary">{{ t.common.save }}</button>
+    <a href="/projects/{{ p.id }}" class="btn">{{ t.common.cancel }}</a>
 </form>
 {% when None %}
 <form method="post" action="/projects">
-    <label>Name <input type="text" name="name" required autofocus></label>
-    <label>Description <textarea name="description"></textarea></label>
-    <button type="submit" class="btn btn-primary">Create</button>
-    <a href="/projects" class="btn">Cancel</a>
+    <label>{{ t.common.name }} <input type="text" name="name" required autofocus></label>
+    <label>{{ t.common.description }} <textarea name="description"></textarea></label>
+    <button type="submit" class="btn btn-primary">{{ t.common.create }}</button>
+    <a href="/projects" class="btn">{{ t.common.cancel }}</a>
 </form>
 {% endmatch %}
 {% endblock %}

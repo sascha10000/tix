@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Profile{% endblock %}
+{% block title %}{{ t.profile.title }}{% endblock %}
 
 {% block content %}
-<h1>Profile</h1>
+<h1>{{ t.profile.title }}</h1>
 
 {% if let Some(msg) = success %}
 <div class="alert alert-success">{{ msg }}</div>
@@ -12,17 +12,17 @@
 <div class="alert alert-error">{{ err }}</div>
 {% endif %}
 
-<h2>Account</h2>
+<h2>{{ t.profile.account }}</h2>
 <form method="post" action="/profile">
-    <label>Username <input type="text" name="username" value="{{ profile.username }}" required></label>
-    <label>Email <input type="email" name="email" value="{{ profile.email }}" required></label>
-    <button type="submit" class="btn btn-primary">Save</button>
+    <label>{{ t.profile.username }} <input type="text" name="username" value="{{ profile.username }}" required></label>
+    <label>{{ t.profile.email }} <input type="email" name="email" value="{{ profile.email }}" required></label>
+    <button type="submit" class="btn btn-primary">{{ t.common.save }}</button>
 </form>
 
-<h2>Change Password</h2>
+<h2>{{ t.profile.change_password }}</h2>
 <form method="post" action="/profile/password">
-    <label>Current Password <input type="password" name="current_password" required></label>
-    <label>New Password <input type="password" name="new_password" required minlength="4"></label>
-    <button type="submit" class="btn btn-primary">Change Password</button>
+    <label>{{ t.profile.current_password }} <input type="password" name="current_password" required></label>
+    <label>{{ t.profile.new_password }} <input type="password" name="new_password" required minlength="4"></label>
+    <button type="submit" class="btn btn-primary">{{ t.profile.change_password_btn }}</button>
 </form>
 {% endblock %}

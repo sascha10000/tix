@@ -7,22 +7,22 @@
 
 <div class="ticket-meta">
     <span class="badge" style="background-color: {{ ticket.status_color }}">{{ ticket.status_name }}</span>
-    <span>Type: {{ ticket.type_name }}</span>
-    <span>Creator: {{ ticket.creator_name }}</span>
-    <span>Assignee: {{ ticket.assignee_name }}</span>
-    <span>Due: {{ ticket.due_date }}</span>
-    <span>Created: {{ ticket.created_at }}</span>
-    <span>Updated: {{ ticket.updated_at }}</span>
+    <span>{{ t.tickets.detail_type }} {{ ticket.type_name }}</span>
+    <span>{{ t.tickets.detail_creator }} {{ ticket.creator_name }}</span>
+    <span>{{ t.tickets.detail_assignee }} {{ ticket.assignee_name }}</span>
+    <span>{{ t.tickets.detail_due }} {{ ticket.due_date }}</span>
+    <span>{{ t.tickets.detail_created }} {{ ticket.created_at }}</span>
+    <span>{{ t.tickets.detail_updated }} {{ ticket.updated_at }}</span>
 </div>
 
 <div class="ticket-text">
-    <h3>Description</h3>
+    <h3>{{ t.tickets.detail_description }}</h3>
     <p>{{ ticket.text }}</p>
 </div>
 
 {% if !field_values.is_empty() %}
 <div class="ticket-fields">
-    <h3>Fields</h3>
+    <h3>{{ t.tickets.fields }}</h3>
     <table>
         {% for fv in field_values %}
         <tr>
@@ -36,11 +36,11 @@
 
 {% if can_transition && !transitions.is_empty() %}
 <div class="ticket-actions">
-    <h3>Change Status</h3>
-    {% for t in transitions %}
+    <h3>{{ t.tickets.change_status }}</h3>
+    {% for tr in transitions %}
     <form method="post" action="/projects/{{ project_id }}/tickets/{{ ticket.id }}/transition">
-        <input type="hidden" name="status_id" value="{{ t.id }}">
-        <button type="submit" class="btn btn-sm">{{ t.name }}</button>
+        <input type="hidden" name="status_id" value="{{ tr.id }}">
+        <button type="submit" class="btn btn-sm">{{ tr.name }}</button>
     </form>
     {% endfor %}
 </div>
@@ -48,12 +48,12 @@
 
 {% if can_edit %}
 <div class="ticket-actions">
-    <a href="/projects/{{ project_id }}/tickets/{{ ticket.id }}/edit" class="btn">Edit</a>
+    <a href="/projects/{{ project_id }}/tickets/{{ ticket.id }}/edit" class="btn">{{ t.common.edit }}</a>
     <form method="post" action="/projects/{{ project_id }}/tickets/{{ ticket.id }}/delete">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this ticket?')">Delete</button>
+        <button type="submit" class="btn btn-danger" onclick="return confirm('{{ t.tickets.delete_confirm }}')">{{ t.common.delete }}</button>
     </form>
 </div>
 {% endif %}
 
-<a href="/projects/{{ project_id }}/tickets" class="btn">Back to list</a>
+<a href="/projects/{{ project_id }}/tickets" class="btn">{{ t.tickets.back_to_list }}</a>
 {% endblock %}

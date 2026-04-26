@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}Ticket Types - Admin{% endblock %}
+{% block title %}{{ t.admin.ticket_types.title }}{% endblock %}
 
 {% block content %}
-<h1>Ticket Types</h1>
-<a href="/admin/ticket-types/new" class="btn btn-primary">New Type</a>
+<h1>{{ t.admin.ticket_types.title }}</h1>
+<a href="/admin/ticket-types/new" class="btn btn-primary">{{ t.admin.ticket_types.new_type }}</a>
 
 <table>
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Fields</th>
+            <th>{{ t.admin.ticket_types.col_name }}</th>
+            <th>{{ t.admin.ticket_types.col_description }}</th>
+            <th>{{ t.admin.ticket_types.col_fields }}</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-        {% for t in ticket_types %}
+        {% for tt in ticket_types %}
         <tr>
-            <td>{{ t.name }}</td>
-            <td>{{ t.description }}</td>
-            <td>{{ t.field_count }}</td>
-            <td><a href="/admin/ticket-types/{{ t.id }}/edit" class="btn btn-sm">Edit</a></td>
+            <td>{{ tt.name }}</td>
+            <td>{{ tt.description }}</td>
+            <td>{{ tt.field_count }}</td>
+            <td><a href="/admin/ticket-types/{{ tt.id }}/edit" class="btn btn-sm">{{ t.common.edit }}</a></td>
         </tr>
         {% endfor %}
     </tbody>

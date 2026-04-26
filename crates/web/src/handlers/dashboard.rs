@@ -1,15 +1,17 @@
 use actix_web::web;
 use askama::Template;
 
+use ticketsystem_core::i18n::Translations;
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::{project, ticket};
-use crate::middleware::AuthenticatedUser;
+use crate::middleware::{AuthenticatedUser, Lang};
 
 #[derive(Template)]
 #[template(path = "dashboard.html")]
 struct DashboardTemplate {
     user: AuthenticatedUser,
     projects: Vec<ProjectWithCount>,
+    t: &'static Translations,
 }
 
 struct ProjectWithCount {
@@ -22,6 +24,7 @@ struct ProjectWithCount {
 pub async fn index(
     user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    Lang(t): Lang,
 ) -> impl actix_web::Responder {
     let conn = pool.get().unwrap();
 
@@ -44,5 +47,5 @@ pub async fn index(
         })
         .collect();
 
-    DashboardTemplate { user, projects }
+    DashboardTemplate { user, projects, t }
 }

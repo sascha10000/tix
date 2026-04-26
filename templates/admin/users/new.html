@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}New User - Admin{% endblock %}
+{% block title %}{{ t.admin.users.new_title }}{% endblock %}
 
 {% block content %}
-<h1>New User</h1>
+<h1>{{ t.admin.users.new_title }}</h1>
 {% if let Some(err) = error %}
 <div class="alert alert-error">{{ err }}</div>
 {% endif %}
 <form method="post" action="/admin/users">
-    <label>Username <input type="text" name="username" required autofocus></label>
-    <label>Email <input type="email" name="email" required></label>
-    <label>Password <input type="password" name="password" required minlength="4"></label>
+    <label>{{ t.admin.users.username }} <input type="text" name="username" required autofocus></label>
+    <label>{{ t.admin.users.email }} <input type="email" name="email" required></label>
+    <label>{{ t.admin.users.password }} <input type="password" name="password" required minlength="4"></label>
     <label>
         <input type="checkbox" name="is_admin">
-        Admin
+        {{ t.admin.users.admin_label }}
     </label>
     <label>
         <input type="checkbox" name="is_manager">
-        Manager
+        {{ t.admin.users.manager_label }}
     </label>
-    <button type="submit" class="btn btn-primary">Create User</button>
-    <a href="/admin/users" class="btn">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ t.admin.users.create_user }}</button>
+    <a href="/admin/users" class="btn">{{ t.common.cancel }}</a>
 </form>
 {% endblock %}

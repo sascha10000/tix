@@ -8,12 +8,16 @@ name = "ticketsystem"
 path = "src/main.rs"
 
 [features]
-default = ["admin", "migrations"]
+default = ["admin", "migrations", "lang-all"]
 admin = []
+lang-all = ["lang-de", "lang-en", "lang-es"]
 migrations = ["ticketsystem-db/migrations"]
+lang-en = ["ticketsystem-core/lang-en"]
+lang-de = ["ticketsystem-core/lang-de"]
+lang-es = ["ticketsystem-core/lang-es"]
 
 [dependencies]
-ticketsystem-core = { path = "../core" }
+ticketsystem-core = { path = "../core", default-features = false }
 ticketsystem-auth = { path = "../auth" }
 ticketsystem-db = { path = "../db" }
 actix-web = "4"

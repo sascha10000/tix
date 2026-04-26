@@ -6,12 +6,14 @@ use std::collections::HashMap;
 
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::{project, status, ticket, ticket_type, user};
+use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
-use crate::middleware::AuthenticatedUser;
+use crate::middleware::{AuthenticatedUser, Lang};
 
 #[derive(Template)]
 #[template(path = "tickets/list.html")]
 struct TicketsListTemplate {
+    t: &'static Translations,
     user: AuthenticatedUser,
     project_id: i64,
     project_name: String,
@@ -35,6 +37,7 @@ struct TicketView {
 #[derive(Template)]
 #[template(path = "tickets/form.html")]
 struct TicketFormTemplate {
+    t: &'static Translations,
     user: AuthenticatedUser,
     project_id: i64,
     project_name: String,
@@ -89,6 +92,7 @@ struct FieldInput {
 #[derive(Template)]
 #[template(path = "tickets/detail.html")]
 struct TicketDetailTemplate {
+    t: &'static Translations,
     user: AuthenticatedUser,
     project_id: i64,
     project_name: String,
@@ -180,6 +184,7 @@ pub async fn list(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let project_id = path.into_inner();
@@ -202,6 +207,7 @@ pub async fn list(
         .collect();
 
     Ok(TicketsListTemplate {
+        t,
         user: auth_user,
         project_id,
         project_name: p.name,
@@ -214,6 +220,7 @@ pub async fn new_page(
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
     query: web::Query<TypeSelectQuery>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let project_id = path.into_inner();
@@ -270,6 +277,7 @@ pub async fn new_page(
     let project_tickets = load_project_tickets(&conn, project_id);
 
     Ok(TicketFormTemplate {
+        t,
         user: auth_user,
         project_id,
         project_name: p.name,
@@ -344,6 +352,7 @@ pub async fn detail(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<(i64, i64)>,
+    Lang(tr): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let (project_id, ticket_id) = path.into_inner();
@@ -401,6 +410,7 @@ pub async fn detail(
     let can_trans = can_transition_ticket(&auth_user, project_role.as_deref());
 
     Ok(TicketDetailTemplate {
+        t: tr,
         user: auth_user,
         project_id,
         project_name: p.name,
@@ -430,6 +440,7 @@ pub async fn edit_page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<(i64, i64)>,
+    Lang(tr): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let (project_id, ticket_id) = path.into_inner();
@@ -480,6 +491,7 @@ pub async fn edit_page(
         .collect();
 
     Ok(TicketFormTemplate {
+        t: tr,
         user: auth_user,
         project_id,
         project_name: p.name,

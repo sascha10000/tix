@@ -5,8 +5,10 @@ use serde::Deserialize;
 
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::user;
+use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
 use crate::middleware::AuthenticatedUser;
+use crate::middleware::Lang;
 
 #[derive(Template)]
 #[template(path = "profile.html")]
@@ -15,6 +17,7 @@ struct ProfileTemplate {
     profile: ProfileView,
     success: Option<String>,
     error: Option<String>,
+    t: &'static Translations,
 }
 
 struct ProfileView {
@@ -37,6 +40,7 @@ pub struct PasswordForm {
 pub async fn page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let u = user::find_by_id(&conn, auth_user.id)
@@ -50,6 +54,7 @@ pub async fn page(
         },
         success: None,
         error: None,
+        t,
     })
 }
 
@@ -57,6 +62,7 @@ pub async fn update(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     form: web::Form<ProfileForm>,
+    Lang(t): Lang,
 ) -> Result<HttpResponse, AppError> {
     let conn = pool.get()?;
 
@@ -70,6 +76,7 @@ pub async fn update(
                 },
                 success: Some("Profile updated.".into()),
                 error: None,
+                t,
             };
             Ok(HttpResponse::Ok()
                 .content_type("text/html")
@@ -84,6 +91,7 @@ pub async fn update(
                 },
                 success: None,
                 error: Some(format!("Failed to update: {e}")),
+                t,
             };
             Ok(HttpResponse::Ok()
                 .content_type("text/html")
@@ -96,6 +104,7 @@ pub async fn change_password(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     form: web::Form<PasswordForm>,
+    Lang(t): Lang,
 ) -> Result<HttpResponse, AppError> {
     let conn = pool.get()?;
     let u = user::find_by_id(&conn, auth_user.id)
@@ -110,6 +119,7 @@ pub async fn change_password(
             },
             success: None,
             error: Some("Current password is incorrect.".into()),
+            t,
         };
         return Ok(HttpResponse::Ok()
             .content_type("text/html")
@@ -128,6 +138,7 @@ pub async fn change_password(
         },
         success: Some("Password changed.".into()),
         error: None,
+        t,
     };
     Ok(HttpResponse::Ok()
         .content_type("text/html")

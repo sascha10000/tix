@@ -5,8 +5,9 @@ use serde::Deserialize;
 
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::status;
+use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
-use crate::middleware::AuthenticatedUser;
+use crate::middleware::{AuthenticatedUser, Lang};
 
 #[derive(Template)]
 #[template(path = "admin/statuses/list.html")]
@@ -14,6 +15,7 @@ struct StatusesListTemplate {
     user: AuthenticatedUser,
     statuses: Vec<StatusView>,
     workflow_matrix: Vec<Vec<bool>>,
+    t: &'static Translations,
 }
 
 struct StatusView {
@@ -28,6 +30,7 @@ struct StatusView {
 struct StatusFormTemplate {
     user: AuthenticatedUser,
     edit: Option<StatusView>,
+    t: &'static Translations,
 }
 
 #[derive(Deserialize)]
@@ -46,6 +49,7 @@ pub struct WorkflowToggleForm {
 pub async fn list(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -79,16 +83,18 @@ pub async fn list(
         user: auth_user,
         statuses,
         workflow_matrix: matrix,
+        t,
     })
 }
 
-pub async fn new_page(auth_user: AuthenticatedUser) -> Result<impl actix_web::Responder, AppError> {
+pub async fn new_page(auth_user: AuthenticatedUser, Lang(t): Lang) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
     }
     Ok(StatusFormTemplate {
         user: auth_user,
         edit: None,
+        t,
     })
 }
 
@@ -112,6 +118,7 @@ pub async fn edit_page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -127,6 +134,7 @@ pub async fn edit_page(
             color: s.color,
             position: s.position,
         }),
+        t,
     })
 }
 

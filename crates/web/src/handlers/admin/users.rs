@@ -5,14 +5,16 @@ use serde::Deserialize;
 
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::user;
+use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
-use crate::middleware::AuthenticatedUser;
+use crate::middleware::{AuthenticatedUser, Lang};
 
 #[derive(Template)]
 #[template(path = "admin/users/list.html")]
 struct UsersListTemplate {
     user: AuthenticatedUser,
     users: Vec<UserView>,
+    t: &'static Translations,
 }
 
 #[derive(Template)]
@@ -20,6 +22,7 @@ struct UsersListTemplate {
 struct UserEditTemplate {
     user: AuthenticatedUser,
     edit_user: UserView,
+    t: &'static Translations,
 }
 
 struct UserView {
@@ -37,6 +40,7 @@ struct UserView {
 struct UserNewTemplate {
     user: AuthenticatedUser,
     error: Option<String>,
+    t: &'static Translations,
 }
 
 #[derive(Deserialize)]
@@ -60,6 +64,7 @@ pub struct UserEditForm {
 pub async fn list(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -81,6 +86,7 @@ pub async fn list(
     Ok(UsersListTemplate {
         user: auth_user,
         users,
+        t,
     })
 }
 
@@ -88,6 +94,7 @@ pub async fn edit_page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -107,6 +114,7 @@ pub async fn edit_page(
             is_active: u.is_active,
             created_at: u.created_at,
         },
+        t,
     })
 }
 
@@ -132,13 +140,14 @@ pub async fn edit_submit(
         .finish())
 }
 
-pub async fn new_page(auth_user: AuthenticatedUser) -> Result<impl actix_web::Responder, AppError> {
+pub async fn new_page(auth_user: AuthenticatedUser, Lang(t): Lang) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
     }
     Ok(UserNewTemplate {
         user: auth_user,
         error: None,
+        t,
     })
 }
 
@@ -146,6 +155,7 @@ pub async fn create(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     form: web::Form<UserCreateForm>,
+    Lang(t): Lang,
 ) -> Result<HttpResponse, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -162,6 +172,7 @@ pub async fn create(
             let tmpl = UserNewTemplate {
                 user: auth_user,
                 error: Some(format!("Failed to create user: {e}")),
+                t,
             };
             Ok(HttpResponse::Ok()
                 .content_type("text/html")

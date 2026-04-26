@@ -8,7 +8,7 @@ default = ["migrations"]
 migrations = []
 
 [dependencies]
-ticketsystem-core = { path = "../core" }
+ticketsystem-core = { path = "../core", default-features = false }
 rusqlite = { version = "0.31", features = ["bundled"] }
 r2d2 = "0.8"
 r2d2_sqlite = "0.24"

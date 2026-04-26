@@ -5,8 +5,9 @@ use serde::Deserialize;
 
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::{project, status, ticket_type, user};
+use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
-use crate::middleware::AuthenticatedUser;
+use crate::middleware::{AuthenticatedUser, Lang};
 
 #[derive(Template)]
 #[template(path = "projects/list.html")]
@@ -14,6 +15,7 @@ struct ProjectsListTemplate {
     user: AuthenticatedUser,
     projects: Vec<ProjectView>,
     can_create: bool,
+    t: &'static Translations,
 }
 
 struct ProjectView {
@@ -27,6 +29,7 @@ struct ProjectView {
 struct ProjectFormTemplate {
     user: AuthenticatedUser,
     edit: Option<ProjectView>,
+    t: &'static Translations,
 }
 
 #[derive(Template)]
@@ -40,6 +43,7 @@ struct ProjectDetailTemplate {
     ticket_types: Vec<TypeToggleView>,
     can_manage: bool,
     can_delete: bool,
+    t: &'static Translations,
 }
 
 struct MemberView {
@@ -106,6 +110,7 @@ fn can_delete_project(conn: &ticketsystem_db::rusqlite::Connection, user: &Authe
 pub async fn list(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let projects_raw = if auth_user.is_admin() {
@@ -129,11 +134,13 @@ pub async fn list(
         user: auth_user,
         projects,
         can_create,
+        t,
     })
 }
 
 pub async fn new_page(
     auth_user: AuthenticatedUser,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !can_create_project(&auth_user) {
         return Err(AppError::Forbidden);
@@ -141,6 +148,7 @@ pub async fn new_page(
     Ok(ProjectFormTemplate {
         user: auth_user,
         edit: None,
+        t,
     })
 }
 
@@ -163,6 +171,7 @@ pub async fn detail(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let id = path.into_inner();
@@ -227,6 +236,7 @@ pub async fn detail(
         ticket_types,
         can_manage,
         can_delete,
+        t,
     })
 }
 
@@ -234,6 +244,7 @@ pub async fn edit_page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let id = path.into_inner();
@@ -248,6 +259,7 @@ pub async fn edit_page(
             name: p.name,
             description: p.description,
         }),
+        t,
     })
 }
 

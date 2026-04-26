@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}Statuses - Admin{% endblock %}
+{% block title %}{{ t.admin.statuses.title }}{% endblock %}
 
 {% block content %}
-<h1>Statuses</h1>
-<a href="/admin/statuses/new" class="btn btn-primary">New Status</a>
+<h1>{{ t.admin.statuses.title }}</h1>
+<a href="/admin/statuses/new" class="btn btn-primary">{{ t.admin.statuses.new_status }}</a>
 
 <table>
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Color</th>
-            <th>Position</th>
+            <th>{{ t.admin.statuses.col_name }}</th>
+            <th>{{ t.admin.statuses.col_color }}</th>
+            <th>{{ t.admin.statuses.col_position }}</th>
             <th></th>
         </tr>
     </thead>
@@ -22,9 +22,9 @@
             <td>{{ s.color }}</td>
             <td>{{ s.position }}</td>
             <td>
-                <a href="/admin/statuses/{{ s.id }}/edit" class="btn btn-sm">Edit</a>
+                <a href="/admin/statuses/{{ s.id }}/edit" class="btn btn-sm">{{ t.common.edit }}</a>
                 <form method="post" action="/admin/statuses/{{ s.id }}/delete" style="display:inline">
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</button>
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ t.admin.statuses.delete_confirm }}')">{{ t.common.delete }}</button>
                 </form>
             </td>
         </tr>
@@ -33,12 +33,12 @@
 </table>
 
 {% if !statuses.is_empty() %}
-<h2>Workflow Transitions</h2>
-<p>Check a cell to allow transition from row status to column status.</p>
+<h2>{{ t.admin.statuses.workflow_title }}</h2>
+<p>{{ t.admin.statuses.workflow_hint }}</p>
 <table class="workflow-matrix">
     <thead>
         <tr>
-            <th>From \ To</th>
+            <th>{{ t.admin.statuses.workflow_from_to }}</th>
             {% for s in statuses %}
             <th><span class="badge" style="background-color: {{ s.color }}">{{ s.name }}</span></th>
             {% endfor %}

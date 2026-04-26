@@ -3,6 +3,7 @@ use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpRequest, HttpResponse, web};
 use std::future::{Ready, ready};
 
+use ticketsystem_core::i18n::{self, Translations};
 use ticketsystem_db::DbPool;
 
 #[derive(Debug, Clone)]
@@ -43,6 +44,42 @@ impl FromRequest for AuthenticatedUser {
             }
         }
     }
+}
+
+/// Language extractor. Checks `lang` cookie, then `Accept-Language` header, then default.
+pub struct Lang(pub &'static Translations);
+
+impl FromRequest for Lang {
+    type Error = actix_web::Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
+        ready(Ok(Lang(resolve_lang(req))))
+    }
+}
+
+fn resolve_lang(req: &HttpRequest) -> &'static Translations {
+    // 1. Cookie override
+    if let Some(cookie) = req.cookie("lang") {
+        let code = cookie.value();
+        if i18n::available_languages().contains(&code) {
+            return i18n::get(code);
+        }
+    }
+    // 2. Accept-Language header (first match)
+    if let Some(header) = req.headers().get("Accept-Language") {
+        if let Ok(val) = header.to_str() {
+            for part in val.split(',') {
+                let code = part.split(';').next().unwrap_or("").trim();
+                let short = if code.len() >= 2 { &code[..2] } else { code };
+                if i18n::available_languages().contains(&short) {
+                    return i18n::get(short);
+                }
+            }
+        }
+    }
+    // 3. Fallback
+    i18n::default()
 }
 
 fn extract_user(req: &HttpRequest) -> Option<AuthenticatedUser> {

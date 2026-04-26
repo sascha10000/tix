@@ -2,18 +2,23 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use askama::Template;
 use serde::Deserialize;
 
+use ticketsystem_core::i18n::Translations;
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::user;
+
+use crate::middleware::Lang;
 
 #[derive(Template)]
 #[template(path = "auth/login.html")]
 struct LoginTemplate {
+    t: &'static Translations,
     error: Option<String>,
 }
 
 #[derive(Template)]
 #[template(path = "auth/register.html")]
 struct RegisterTemplate {
+    t: &'static Translations,
     error: Option<String>,
 }
 
@@ -30,11 +35,12 @@ pub struct RegisterForm {
     password: String,
 }
 
-pub async fn login_page() -> impl actix_web::Responder {
-    LoginTemplate { error: None }
+pub async fn login_page(Lang(t): Lang) -> impl actix_web::Responder {
+    LoginTemplate { t, error: None }
 }
 
 pub async fn login_submit(
+    Lang(t): Lang,
     pool: web::Data<DbPool>,
     session_hours: web::Data<i64>,
     form: web::Form<LoginForm>,
@@ -58,6 +64,7 @@ pub async fn login_submit(
         }
         _ => {
             let tmpl = LoginTemplate {
+                t,
                 error: Some("Invalid username or password".to_string()),
             };
             HttpResponse::Ok()
@@ -67,11 +74,12 @@ pub async fn login_submit(
     }
 }
 
-pub async fn register_page() -> impl actix_web::Responder {
-    RegisterTemplate { error: None }
+pub async fn register_page(Lang(t): Lang) -> impl actix_web::Responder {
+    RegisterTemplate { t, error: None }
 }
 
 pub async fn register_submit(
+    Lang(t): Lang,
     pool: web::Data<DbPool>,
     form: web::Form<RegisterForm>,
 ) -> HttpResponse {
@@ -89,6 +97,7 @@ pub async fn register_submit(
             .finish(),
         Err(e) => {
             let tmpl = RegisterTemplate {
+                t,
                 error: Some(format!("Registration failed: {e}")),
             };
             HttpResponse::Ok()

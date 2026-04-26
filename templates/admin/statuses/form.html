@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}{% if edit.is_some() %}Edit{% else %}New{% endif %} Status - Admin{% endblock %}
+{% block title %}{% if edit.is_some() %}{{ t.admin.statuses.edit_title }}{% else %}{{ t.admin.statuses.new_title }}{% endif %}{% endblock %}
 
 {% block content %}
-<h1>{% if edit.is_some() %}Edit{% else %}New{% endif %} Status</h1>
+<h1>{% if edit.is_some() %}{{ t.admin.statuses.edit_title }}{% else %}{{ t.admin.statuses.new_title }}{% endif %}</h1>
 {% match edit %}
 {% when Some with (s) %}
 <form method="post" action="/admin/statuses/{{ s.id }}/edit">
-    <label>Name <input type="text" name="name" value="{{ s.name }}" required></label>
-    <label>Color <input type="color" name="color" value="{{ s.color }}"></label>
-    <label>Position <input type="number" name="position" value="{{ s.position }}"></label>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="/admin/statuses" class="btn">Cancel</a>
+    <label>{{ t.common.name }} <input type="text" name="name" value="{{ s.name }}" required></label>
+    <label>{{ t.admin.statuses.color_label }} <input type="color" name="color" value="{{ s.color }}"></label>
+    <label>{{ t.common.position }} <input type="number" name="position" value="{{ s.position }}"></label>
+    <button type="submit" class="btn btn-primary">{{ t.common.save }}</button>
+    <a href="/admin/statuses" class="btn">{{ t.common.cancel }}</a>
 </form>
 {% when None %}
 <form method="post" action="/admin/statuses">
-    <label>Name <input type="text" name="name" required autofocus></label>
-    <label>Color <input type="color" name="color" value="#6b7280"></label>
-    <label>Position <input type="number" name="position" value="0"></label>
-    <button type="submit" class="btn btn-primary">Create</button>
-    <a href="/admin/statuses" class="btn">Cancel</a>
+    <label>{{ t.common.name }} <input type="text" name="name" required autofocus></label>
+    <label>{{ t.admin.statuses.color_label }} <input type="color" name="color" value="#6b7280"></label>
+    <label>{{ t.common.position }} <input type="number" name="position" value="0"></label>
+    <button type="submit" class="btn btn-primary">{{ t.common.create }}</button>
+    <a href="/admin/statuses" class="btn">{{ t.common.cancel }}</a>
 </form>
 {% endmatch %}
 {% endblock %}

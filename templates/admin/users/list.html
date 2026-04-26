@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Users - Admin{% endblock %}
+{% block title %}{{ t.admin.users.title }}{% endblock %}
 
 {% block content %}
-<h1>Users</h1>
-<a href="/admin/users/new" class="btn btn-primary">New User</a>
+<h1>{{ t.admin.users.title }}</h1>
+<a href="/admin/users/new" class="btn btn-primary">{{ t.admin.users.new_user }}</a>
 
 <table>
     <thead>
         <tr>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Admin</th>
-            <th>Manager</th>
-            <th>Active</th>
-            <th>Created</th>
+            <th>{{ t.admin.users.col_username }}</th>
+            <th>{{ t.admin.users.col_email }}</th>
+            <th>{{ t.admin.users.col_admin }}</th>
+            <th>{{ t.admin.users.col_manager }}</th>
+            <th>{{ t.admin.users.col_active }}</th>
+            <th>{{ t.admin.users.col_created }}</th>
             <th></th>
         </tr>
     </thead>
@@ -23,15 +23,15 @@
         <tr>
             <td>{{ u.username }}</td>
             <td>{{ u.email }}</td>
-            <td>{% if u.is_admin %}Yes{% else %}No{% endif %}</td>
-            <td>{% if u.is_manager %}Yes{% else %}No{% endif %}</td>
-            <td>{% if u.is_active %}Yes{% else %}No{% endif %}</td>
+            <td>{% if u.is_admin %}{{ t.common.yes }}{% else %}{{ t.common.no }}{% endif %}</td>
+            <td>{% if u.is_manager %}{{ t.common.yes }}{% else %}{{ t.common.no }}{% endif %}</td>
+            <td>{% if u.is_active %}{{ t.common.yes }}{% else %}{{ t.common.no }}{% endif %}</td>
             <td>{{ u.created_at }}</td>
             <td>
-                <a href="/admin/users/{{ u.id }}/edit" class="btn btn-sm">Edit</a>
+                <a href="/admin/users/{{ u.id }}/edit" class="btn btn-sm">{{ t.common.edit }}</a>
                 {% if u.is_active %}
                 <form method="post" action="/admin/users/{{ u.id }}/delete" style="display:inline">
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Deactivate this user?')">Deactivate</button>
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ t.admin.users.deactivate_confirm }}')">{{ t.admin.users.deactivate }}</button>
                 </form>
                 {% endif %}
             </td>

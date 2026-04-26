@@ -5,14 +5,16 @@ use serde::Deserialize;
 
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::ticket_type;
+use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
-use crate::middleware::AuthenticatedUser;
+use crate::middleware::{AuthenticatedUser, Lang};
 
 #[derive(Template)]
 #[template(path = "admin/ticket_types/list.html")]
 struct TicketTypesListTemplate {
     user: AuthenticatedUser,
     ticket_types: Vec<TicketTypeView>,
+    t: &'static Translations,
 }
 
 struct TicketTypeView {
@@ -30,6 +32,7 @@ struct TicketTypeFormTemplate {
     fields: Vec<FieldView>,
     available_templates: Vec<TemplateOption>,
     error: Option<String>,
+    t: &'static Translations,
 }
 
 struct TemplateOption {
@@ -80,6 +83,7 @@ pub struct FieldForm {
 pub async fn list(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -102,12 +106,14 @@ pub async fn list(
     Ok(TicketTypesListTemplate {
         user: auth_user,
         ticket_types,
+        t,
     })
 }
 
 pub async fn new_page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -124,6 +130,7 @@ pub async fn new_page(
         fields: vec![],
         available_templates,
         error: None,
+        t,
     })
 }
 
@@ -131,6 +138,7 @@ pub async fn create(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     form: web::Form<TicketTypeForm>,
+    Lang(t): Lang,
 ) -> Result<HttpResponse, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
@@ -152,6 +160,7 @@ pub async fn create(
                     "A ticket type with the name '{}' already exists. ({})",
                     form.name, e
                 )),
+                t,
             };
             return Ok(HttpResponse::Ok()
                 .content_type("text/html")
@@ -189,13 +198,14 @@ pub async fn edit_page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
+    Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     if !auth_user.is_admin() {
         return Err(AppError::Forbidden);
     }
     let conn = pool.get()?;
     let id = path.into_inner();
-    let t = ticket_type::find_by_id(&conn, id)
+    let tt = ticket_type::find_by_id(&conn, id)
         .ok_or(AppError::NotFound("Ticket type not found".into()))?;
     let fields_raw = ticket_type::list_fields(&conn, id);
     let fields: Vec<FieldView> = fields_raw
@@ -217,13 +227,14 @@ pub async fn edit_page(
     Ok(TicketTypeFormTemplate {
         user: auth_user,
         edit: Some(TicketTypeEditView {
-            id: t.id,
-            name: t.name,
-            description: t.description,
+            id: tt.id,
+            name: tt.name,
+            description: tt.description,
         }),
         fields,
         available_templates: vec![],
         error: None,
+        t,
     })
 }
 

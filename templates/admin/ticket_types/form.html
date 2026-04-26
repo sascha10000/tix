@@ -1,29 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket Type - Admin{% endblock %}
+{% block title %}{% if edit.is_some() %}{{ t.admin.ticket_types.edit_title }}{% else %}{{ t.admin.ticket_types.new_title }}{% endif %}{% endblock %}
 
 {% block content %}
-<h1>{% if edit.is_some() %}Edit{% else %}New{% endif %} Ticket Type</h1>
+<h1>{% if edit.is_some() %}{{ t.admin.ticket_types.edit_title }}{% else %}{{ t.admin.ticket_types.new_title }}{% endif %}</h1>
 
 {% match edit %}
-{% when Some with (t) %}
-<form method="post" action="/admin/ticket-types/{{ t.id }}/edit">
-    <label>Name <input type="text" name="name" value="{{ t.name }}" required></label>
-    <label>Description <textarea name="description">{{ t.description }}</textarea></label>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="/admin/ticket-types" class="btn">Cancel</a>
+{% when Some with (tt) %}
+<form method="post" action="/admin/ticket-types/{{ tt.id }}/edit">
+    <label>{{ t.common.name }} <input type="text" name="name" value="{{ tt.name }}" required></label>
+    <label>{{ t.common.description }} <textarea name="description">{{ tt.description }}</textarea></label>
+    <button type="submit" class="btn btn-primary">{{ t.common.save }}</button>
+    <a href="/admin/ticket-types" class="btn">{{ t.common.cancel }}</a>
 </form>
 
-<h2>Custom Fields</h2>
+<h2>{{ t.admin.ticket_types.custom_fields }}</h2>
 {% if !fields.is_empty() %}
 <table>
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Required</th>
-            <th>Position</th>
-            <th>Constraints</th>
+            <th>{{ t.common.name }}</th>
+            <th>{{ t.admin.ticket_types.col_type }}</th>
+            <th>{{ t.admin.ticket_types.col_required }}</th>
+            <th>{{ t.admin.ticket_types.col_position }}</th>
+            <th>{{ t.admin.ticket_types.col_constraints }}</th>
             <th></th>
         </tr>
     </thead>
@@ -32,7 +32,7 @@
         <tr>
             <td>{{ f.name }}</td>
             <td>{{ f.field_type }}</td>
-            <td>{% if f.is_required %}Yes{% else %}No{% endif %}</td>
+            <td>{% if f.is_required %}{{ t.common.yes }}{% else %}{{ t.common.no }}{% endif %}</td>
             <td>{{ f.position }}</td>
             <td>
                 {% if f.field_type == "number" %}
@@ -44,8 +44,8 @@
                 {% if !f.default_value.is_empty() %}default="{{ f.default_value }}"{% endif %}
             </td>
             <td>
-                <form method="post" action="/admin/ticket-types/{{ t.id }}/fields/{{ f.id }}/delete" style="display:inline">
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete field?')">Delete</button>
+                <form method="post" action="/admin/ticket-types/{{ tt.id }}/fields/{{ f.id }}/delete" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ t.admin.ticket_types.delete_field_confirm }}')">{{ t.common.delete }}</button>
                 </form>
             </td>
         </tr>
@@ -54,51 +54,51 @@
 </table>
 {% endif %}
 
-<h3>Add Field</h3>
-<form method="post" action="/admin/ticket-types/{{ t.id }}/fields" id="add-field-form">
+<h3>{{ t.admin.ticket_types.add_field }}</h3>
+<form method="post" action="/admin/ticket-types/{{ tt.id }}/fields" id="add-field-form">
     <div class="form-row">
         <div class="form-group" style="flex:2">
-            <label>Name <input type="text" name="name" required></label>
+            <label>{{ t.common.name }} <input type="text" name="name" required></label>
         </div>
         <div class="form-group" style="flex:1">
-            <label>Type
+            <label>{{ t.admin.ticket_types.col_type }}
                 <select name="field_type" id="field-type-select">
-                    <option value="text">Text</option>
-                    <option value="textarea">Textarea</option>
-                    <option value="number">Number</option>
-                    <option value="date">Date</option>
-                    <option value="user">User (project member)</option>
-                    <option value="ticket">Ticket (in project)</option>
+                    <option value="text">{{ t.admin.ticket_types.field_text }}</option>
+                    <option value="textarea">{{ t.admin.ticket_types.field_textarea }}</option>
+                    <option value="number">{{ t.admin.ticket_types.field_number }}</option>
+                    <option value="date">{{ t.admin.ticket_types.field_date }}</option>
+                    <option value="user">{{ t.admin.ticket_types.field_user }}</option>
+                    <option value="ticket">{{ t.admin.ticket_types.field_ticket }}</option>
                 </select>
             </label>
         </div>
         <div class="form-group">
-            <label>Pos <input type="number" name="position" value="0" style="width:60px"></label>
+            <label>{{ t.admin.ticket_types.pos }} <input type="number" name="position" value="0" style="width:60px"></label>
         </div>
         <div class="form-group" style="align-self:center;padding-top:var(--space-sm)">
-            <label><input type="checkbox" name="is_required"> Required</label>
+            <label><input type="checkbox" name="is_required"> {{ t.common.required }}</label>
         </div>
     </div>
     <div class="form-row">
         <div class="form-group" style="flex:1">
-            <label>Placeholder <input type="text" name="placeholder" placeholder="optional"></label>
+            <label>{{ t.admin.ticket_types.placeholder }} <input type="text" name="placeholder" placeholder="{{ t.common.optional }}"></label>
         </div>
         <div class="form-group" style="flex:1">
-            <label>Default Value <input type="text" name="default_value" placeholder="optional"></label>
+            <label>{{ t.admin.ticket_types.default_value }} <input type="text" name="default_value" placeholder="{{ t.common.optional }}"></label>
         </div>
     </div>
     <div class="form-row" id="number-fields" style="display:none">
         <div class="form-group" style="flex:1">
-            <label>Min <input type="text" name="num_min" placeholder="optional"></label>
+            <label>{{ t.admin.ticket_types.min }} <input type="text" name="num_min" placeholder="{{ t.common.optional }}"></label>
         </div>
         <div class="form-group" style="flex:1">
-            <label>Max <input type="text" name="num_max" placeholder="optional"></label>
+            <label>{{ t.admin.ticket_types.max }} <input type="text" name="num_max" placeholder="{{ t.common.optional }}"></label>
         </div>
         <div class="form-group" style="flex:1">
-            <label>Step <input type="text" name="num_step" placeholder="optional"></label>
+            <label>{{ t.admin.ticket_types.step }} <input type="text" name="num_step" placeholder="{{ t.common.optional }}"></label>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Add Field</button>
+    <button type="submit" class="btn btn-primary">{{ t.admin.ticket_types.add_field }}</button>
 </form>
 <script>
 (function() {
@@ -117,20 +117,20 @@
 <div class="alert alert-danger">{{ msg }}</div>
 {% endif %}
 <form method="post" action="/admin/ticket-types">
-    <label>Name <input type="text" name="name" required autofocus></label>
-    <label>Description <textarea name="description"></textarea></label>
+    <label>{{ t.common.name }} <input type="text" name="name" required autofocus></label>
+    <label>{{ t.common.description }} <textarea name="description"></textarea></label>
     {% if !available_templates.is_empty() %}
-    <label>Copy fields from
+    <label>{{ t.admin.ticket_types.copy_fields_from }}
         <select name="template_id">
-            <option value="0">-- None --</option>
-            {% for t in available_templates %}
-            <option value="{{ t.id }}">{{ t.name }}</option>
+            <option value="0">{{ t.admin.ticket_types.none_option }}</option>
+            {% for tmpl in available_templates %}
+            <option value="{{ tmpl.id }}">{{ tmpl.name }}</option>
             {% endfor %}
         </select>
     </label>
     {% endif %}
-    <button type="submit" class="btn btn-primary">Create</button>
-    <a href="/admin/ticket-types" class="btn">Cancel</a>
+    <button type="submit" class="btn btn-primary">{{ t.common.create }}</button>
+    <a href="/admin/ticket-types" class="btn">{{ t.common.cancel }}</a>
 </form>
 {% endmatch %}
 {% endblock %}

@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Projects{% endblock %}
+{% block title %}{{ t.projects.title }}{% endblock %}
 
 {% block content %}
-<h1>Projects</h1>
+<h1>{{ t.projects.title }}</h1>
 {% if can_create %}
-<a href="/projects/new" class="btn btn-primary">New Project</a>
+<a href="/projects/new" class="btn btn-primary">{{ t.projects.new_project }}</a>
 {% endif %}
 
 {% if projects.is_empty() %}
-<p>No projects available.</p>
+<p>{{ t.projects.no_projects }}</p>
 {% else %}
 <table>
     <thead>
         <tr>
-            <th>Name</th>
-            <th>Description</th>
+            <th>{{ t.projects.col_name }}</th>
+            <th>{{ t.projects.col_description }}</th>
             <th></th>
         </tr>
     </thead>
@@ -25,7 +25,7 @@
             <td><a href="/projects/{{ p.id }}/tickets">{{ p.name }}</a></td>
             <td>{{ p.description }}</td>
             <td>
-                <a href="/projects/{{ p.id }}" class="btn btn-sm">Settings</a>
+                <a href="/projects/{{ p.id }}" class="btn btn-sm">{{ t.common.settings }}</a>
             </td>
         </tr>
         {% endfor %}
