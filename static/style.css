@@ -162,7 +162,7 @@ nav a:hover {
 /* ── Layout ── */
 main {
     max-width: 980px;
-    margin: var(--space-3xl) auto;
+    margin: var(--space-xl) auto;
     padding: 0 var(--space-xl);
 }
 
@@ -173,8 +173,8 @@ h1 {
     font-weight: 700;
     letter-spacing: -0.03em;
     color: var(--c-text);
-    margin-bottom: var(--space-xl);
-    padding-bottom: var(--space-md);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
     border-bottom: 2px solid var(--c-accent);
 }
 
@@ -184,8 +184,8 @@ h2 {
     font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--c-text);
-    margin: var(--space-2xl) 0 var(--space-lg);
-    padding-bottom: var(--space-sm);
+    margin: var(--space-lg) 0 var(--space-md);
+    padding-bottom: var(--space-xs);
     border-bottom: 1px solid var(--c-border);
 }
 
@@ -196,10 +196,10 @@ h3 {
     color: var(--c-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin: var(--space-xl) 0 var(--space-md);
+    margin: var(--space-md) 0 var(--space-sm);
 }
 
-p { color: var(--c-text-secondary); margin-bottom: var(--space-md); }
+p { color: var(--c-text-secondary); margin-bottom: var(--space-sm); }
 
 /* ── Auth Pages ── */
 .auth-page {
@@ -221,12 +221,12 @@ p { color: var(--c-text-secondary); margin-bottom: var(--space-md); }
 .auth-page a { font-weight: 500; }
 
 /* ── Forms ── */
-form { margin-bottom: var(--space-lg); }
+form { margin-bottom: var(--space-md); }
 nav form { margin-bottom: 0; }
 
 label {
     display: block;
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-sm);
     font-family: var(--font-display);
     font-size: 13px;
     font-weight: 500;
@@ -274,7 +274,7 @@ select option {
 }
 
 textarea {
-    min-height: 100px;
+    min-height: 72px;
     resize: vertical;
     font-family: var(--font-body);
 }
@@ -437,7 +437,7 @@ label:has(> input[type="checkbox"]) {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin: var(--space-lg) 0;
+    margin: var(--space-sm) 0 var(--space-md);
 }
 
 th, td {
@@ -483,9 +483,9 @@ tr:hover { background: var(--c-surface); }
 
 /* ── Alerts ── */
 .alert {
-    padding: var(--space-md) var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
     border-radius: var(--radius);
-    margin-bottom: var(--space-lg);
+    margin-bottom: var(--space-sm);
     font-size: 13px;
     border-left: 3px solid;
 }
@@ -505,15 +505,16 @@ tr:hover { background: var(--c-surface); }
 /* ── Ticket Detail ── */
 .ticket-meta {
     display: flex;
-    gap: var(--space-xl);
+    gap: var(--space-sm) var(--space-lg);
     flex-wrap: wrap;
-    margin: var(--space-lg) 0;
-    padding: var(--space-lg);
+    margin: var(--space-sm) 0 var(--space-md);
+    padding: var(--space-sm) var(--space-md);
     background: var(--c-surface);
     border: 1px solid var(--c-border);
     border-radius: var(--radius);
     font-size: 13px;
     color: var(--c-text-secondary);
+    align-items: center;
 }
 
 .ticket-meta span {
@@ -522,8 +523,8 @@ tr:hover { background: var(--c-surface); }
 }
 
 .ticket-text {
-    margin: var(--space-lg) 0;
-    padding: var(--space-lg);
+    margin: var(--space-sm) 0 var(--space-md);
+    padding: var(--space-sm) var(--space-md);
     background: var(--c-surface);
     border: 1px solid var(--c-border);
     border-left: 3px solid var(--c-accent);
@@ -532,7 +533,7 @@ tr:hover { background: var(--c-surface); }
 
 .ticket-text p { color: var(--c-text); line-height: 1.7; }
 
-.ticket-fields { margin: var(--space-lg) 0; }
+.ticket-fields { margin: var(--space-sm) 0; }
 .ticket-fields table { background: transparent; }
 .ticket-fields th {
     font-family: var(--font-display);
@@ -545,10 +546,16 @@ tr:hover { background: var(--c-surface); }
 .ticket-fields td { color: var(--c-text); }
 
 .ticket-actions {
-    margin: var(--space-lg) 0;
+    margin: var(--space-md) 0;
     display: flex;
     gap: var(--space-sm);
+    align-items: center;
     flex-wrap: wrap;
+}
+
+.ticket-actions form {
+    display: inline-flex;
+    margin: 0;
 }
 
 /* ── Workflow Matrix ── */
