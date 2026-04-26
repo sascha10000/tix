@@ -1706,22 +1706,45 @@ dependencies = [
 ]
 
 [[package]]
-name = "ticketsystem"
+name = "ticketsystem-auth"
+version = "0.1.0"
+dependencies = [
+ "argon2",
+ "password-hash",
+]
+
+[[package]]
+name = "ticketsystem-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "ticketsystem-db"
+version = "0.1.0"
+dependencies = [
+ "r2d2",
+ "r2d2_sqlite",
+ "rusqlite",
+ "ticketsystem-core",
+ "uuid",
+]
+
+[[package]]
+name = "ticketsystem-web"
 version = "0.1.0"
 dependencies = [
  "actix-web",
- "argon2",
  "askama",
  "askama_actix",
  "chrono",
  "clap",
  "dotenvy",
- "password-hash",
- "r2d2",
- "r2d2_sqlite",
- "rusqlite",
  "serde",
- "uuid",
+ "ticketsystem-auth",
+ "ticketsystem-core",
+ "ticketsystem-db",
 ]
 
 [[package]]

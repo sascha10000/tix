@@ -1,0 +1,25 @@
+[package]
+name = "ticketsystem-web"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "ticketsystem"
+path = "src/main.rs"
+
+[features]
+default = ["admin", "migrations"]
+admin = []
+migrations = ["ticketsystem-db/migrations"]
+
+[dependencies]
+ticketsystem-core = { path = "../core" }
+ticketsystem-auth = { path = "../auth" }
+ticketsystem-db = { path = "../db" }
+actix-web = "4"
+askama = "0.12"
+askama_actix = "0.14"
+serde = { version = "1", features = ["derive"] }
+chrono = "0.4"
+clap = { version = "4", features = ["derive"] }
+dotenvy = "0.15"

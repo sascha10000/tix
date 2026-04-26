@@ -1,19 +1,16 @@
-[package]
-name = "ticketsystem"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "3"
+members = [
+    "crates/core",
+    "crates/auth",
+    "crates/db",
+    "crates/web",
+]
 
-[dependencies]
-actix-web = "4"
-askama = "0.12"
-askama_actix = "0.14"
-rusqlite = { version = "0.31", features = ["bundled"] }
-r2d2 = "0.8"
-r2d2_sqlite = "0.24"
-argon2 = { version = "0.5", features = ["std"] }
-password-hash = { version = "0.5", features = ["rand_core"] }
-uuid = { version = "1", features = ["v4"] }
-serde = { version = "1", features = ["derive"] }
-chrono = "0.4"
-clap = { version = "4", features = ["derive"] }
-dotenvy = "0.15"
+[profile.release]
+opt-level = "z"     # Optimize for size. "s" is also an option.
+lto = true          # Enable Link Time Optimization
+codegen-units = 1   # Reduce parallel code generation units for better optimization
+panic = "abort"     # Remove panic unwinding code
+strip = true        # Automatically strip symbols from the binary
+
