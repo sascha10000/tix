@@ -40,6 +40,8 @@
                 {% if let Some(max) = f.num_max %}max={{ max }} {% endif %}
                 {% if let Some(step) = f.num_step %}step={{ step }}{% endif %}
                 {% endif %}
+                {% if !f.placeholder.is_empty() %}placeholder="{{ f.placeholder }}" {% endif %}
+                {% if !f.default_value.is_empty() %}default="{{ f.default_value }}"{% endif %}
             </td>
             <td>
                 <form method="post" action="/admin/ticket-types/{{ t.id }}/fields/{{ f.id }}/delete" style="display:inline">
@@ -53,10 +55,10 @@
 {% endif %}
 
 <h3>Add Field</h3>
-<form method="post" action="/admin/ticket-types/{{ t.id }}/fields">
+<form method="post" action="/admin/ticket-types/{{ t.id }}/fields" id="add-field-form">
     <label>Name <input type="text" name="name" required></label>
     <label>Type
-        <select name="field_type">
+        <select name="field_type" id="field-type-select">
             <option value="text">Text</option>
             <option value="textarea">Textarea</option>
             <option value="number">Number</option>
@@ -67,11 +69,26 @@
     </label>
     <label><input type="checkbox" name="is_required"> Required</label>
     <label>Position <input type="number" name="position" value="0"></label>
-    <label>Min (number only) <input type="text" name="num_min" placeholder="optional"></label>
-    <label>Max (number only) <input type="text" name="num_max" placeholder="optional"></label>
-    <label>Step (number only) <input type="text" name="num_step" placeholder="optional"></label>
+    <label>Placeholder <input type="text" name="placeholder" placeholder="optional"></label>
+    <label>Default Value <input type="text" name="default_value" placeholder="optional"></label>
+    <div id="number-fields" style="display:none">
+        <label>Min <input type="text" name="num_min" placeholder="optional"></label>
+        <label>Max <input type="text" name="num_max" placeholder="optional"></label>
+        <label>Step <input type="text" name="num_step" placeholder="optional"></label>
+    </div>
     <button type="submit" class="btn btn-primary">Add Field</button>
 </form>
+<script>
+(function() {
+    var sel = document.getElementById('field-type-select');
+    var numFields = document.getElementById('number-fields');
+    function toggle() {
+        numFields.style.display = sel.value === 'number' ? '' : 'none';
+    }
+    sel.addEventListener('change', toggle);
+    toggle();
+})();
+</script>
 
 {% when None %}
 {% if let Some(msg) = error %}

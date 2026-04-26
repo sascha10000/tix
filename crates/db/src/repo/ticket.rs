@@ -136,7 +136,7 @@ pub fn get_field_values(conn: &Connection, ticket_id: i64) -> Vec<FieldValue> {
     let mut stmt = conn
         .prepare(
             "SELECT cf.id, cf.name, cf.field_type, COALESCE(fv.value, ''), cf.is_required,
-                    cf.num_min, cf.num_max, cf.num_step
+                    cf.num_min, cf.num_max, cf.num_step, cf.placeholder, cf.default_value
              FROM custom_fields cf
              JOIN tickets t ON t.ticket_type_id = cf.ticket_type_id AND t.id = ?1
              LEFT JOIN ticket_field_values fv ON fv.custom_field_id = cf.id AND fv.ticket_id = ?1
@@ -153,6 +153,8 @@ pub fn get_field_values(conn: &Connection, ticket_id: i64) -> Vec<FieldValue> {
             num_min: row.get(5)?,
             num_max: row.get(6)?,
             num_step: row.get(7)?,
+            placeholder: row.get(8)?,
+            default_value: row.get(9)?,
         })
     })
     .unwrap()

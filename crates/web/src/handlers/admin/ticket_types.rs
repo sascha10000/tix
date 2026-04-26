@@ -43,6 +43,7 @@ struct TicketTypeEditView {
     description: String,
 }
 
+#[allow(dead_code)]
 struct FieldView {
     id: i64,
     name: String,
@@ -52,6 +53,8 @@ struct FieldView {
     num_min: Option<f64>,
     num_max: Option<f64>,
     num_step: Option<f64>,
+    placeholder: String,
+    default_value: String,
 }
 
 #[derive(Deserialize)]
@@ -70,6 +73,8 @@ pub struct FieldForm {
     num_min: Option<String>,
     num_max: Option<String>,
     num_step: Option<String>,
+    placeholder: Option<String>,
+    default_value: Option<String>,
 }
 
 pub async fn list(
@@ -168,6 +173,8 @@ pub async fn create(
                     f.num_min,
                     f.num_max,
                     f.num_step,
+                    &f.placeholder,
+                    &f.default_value,
                 )?;
             }
         }
@@ -202,6 +209,8 @@ pub async fn edit_page(
             num_min: f.num_min,
             num_max: f.num_max,
             num_step: f.num_step,
+            placeholder: f.placeholder,
+            default_value: f.default_value,
         })
         .collect();
 
@@ -250,6 +259,8 @@ pub async fn add_field(
     let num_min: Option<f64> = form.num_min.as_deref().and_then(|s| s.parse().ok());
     let num_max: Option<f64> = form.num_max.as_deref().and_then(|s| s.parse().ok());
     let num_step: Option<f64> = form.num_step.as_deref().and_then(|s| s.parse().ok());
+    let placeholder = form.placeholder.as_deref().unwrap_or("");
+    let default_value = form.default_value.as_deref().unwrap_or("");
 
     ticket_type::add_field(
         &conn,
@@ -261,6 +272,8 @@ pub async fn add_field(
         num_min,
         num_max,
         num_step,
+        placeholder,
+        default_value,
     )?;
 
     Ok(HttpResponse::SeeOther()

@@ -1,5 +1,5 @@
 /// Current schema version. Must match the number of migrations in migrations.rs.
-const SCHEMA_VERSION: i64 = 5;
+const SCHEMA_VERSION: i64 = 6;
 
 /// Initial schema -- runs only when tables don't exist yet.
 /// This reflects the LATEST schema (post all migrations).
@@ -68,6 +68,8 @@ pub(crate) fn create_schema(conn: &rusqlite::Connection) {
             num_min        REAL,
             num_max        REAL,
             num_step       REAL,
+            placeholder    TEXT NOT NULL DEFAULT '',
+            default_value  TEXT NOT NULL DEFAULT '',
             UNIQUE(ticket_type_id, name)
         );
 

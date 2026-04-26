@@ -1,5 +1,5 @@
 /// Total number of migrations. Keep in sync with the migrations vec in run_migrations().
-pub const MIGRATION_COUNT: i64 = 5;
+pub const MIGRATION_COUNT: i64 = 6;
 
 /// Versioned migrations. Each entry runs once, in order.
 /// Add new migrations to the end of the list -- never modify existing ones.
@@ -122,6 +122,11 @@ pub fn run_migrations(conn: &rusqlite::Connection) {
         CREATE INDEX idx_tickets_project ON tickets(project_id, is_deleted);
 
         PRAGMA foreign_keys=ON;
+        ",
+        // Migration 6: Add placeholder and default_value to custom_fields.
+        "
+        ALTER TABLE custom_fields ADD COLUMN placeholder TEXT NOT NULL DEFAULT '';
+        ALTER TABLE custom_fields ADD COLUMN default_value TEXT NOT NULL DEFAULT '';
         ",
     ];
 

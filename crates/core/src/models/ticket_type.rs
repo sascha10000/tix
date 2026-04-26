@@ -14,4 +14,6 @@ pub struct CustomField {
     pub num_min: Option<f64>,
     pub num_max: Option<f64>,
     pub num_step: Option<f64>,
+    pub placeholder: String,
+    pub default_value: String,
 }

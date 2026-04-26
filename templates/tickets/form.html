@@ -28,9 +28,9 @@
     {% for f in fields %}
     <label>{{ f.name }}
         {% if f.field_type == "textarea" %}
-        <textarea name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>{{ f.value }}</textarea>
+        <textarea name="field_{{ f.id }}" placeholder="{{ f.placeholder }}" {% if f.is_required %}required{% endif %}>{{ f.value }}</textarea>
         {% else if f.field_type == "number" %}
-        <input type="number" name="field_{{ f.id }}" value="{{ f.value }}"
+        <input type="number" name="field_{{ f.id }}" value="{{ f.value }}" placeholder="{{ f.placeholder }}"
             {% if let Some(min) = f.num_min %}min="{{ min }}"{% endif %}
             {% if let Some(max) = f.num_max %}max="{{ max }}"{% endif %}
             {% if let Some(step) = f.num_step %}step="{{ step }}"{% endif %}
@@ -52,7 +52,7 @@
             {% endfor %}
         </select>
         {% else %}
-        <input type="text" name="field_{{ f.id }}" value="{{ f.value }}" {% if f.is_required %}required{% endif %}>
+        <input type="text" name="field_{{ f.id }}" value="{{ f.value }}" placeholder="{{ f.placeholder }}" {% if f.is_required %}required{% endif %}>
         {% endif %}
     </label>
     {% endfor %}
@@ -99,15 +99,15 @@
     {% for f in fields %}
     <label>{{ f.name }}
         {% if f.field_type == "textarea" %}
-        <textarea name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}></textarea>
+        <textarea name="field_{{ f.id }}" placeholder="{{ f.placeholder }}" {% if f.is_required %}required{% endif %}>{{ f.value }}</textarea>
         {% else if f.field_type == "number" %}
-        <input type="number" name="field_{{ f.id }}"
+        <input type="number" name="field_{{ f.id }}" value="{{ f.value }}" placeholder="{{ f.placeholder }}"
             {% if let Some(min) = f.num_min %}min="{{ min }}"{% endif %}
             {% if let Some(max) = f.num_max %}max="{{ max }}"{% endif %}
             {% if let Some(step) = f.num_step %}step="{{ step }}"{% endif %}
             {% if f.is_required %}required{% endif %}>
         {% else if f.field_type == "date" %}
-        <input type="date" name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+        <input type="date" name="field_{{ f.id }}" value="{{ f.value }}" {% if f.is_required %}required{% endif %}>
         {% else if f.field_type == "user" %}
         <select name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
             <option value="">-- Select user --</option>
@@ -123,7 +123,7 @@
             {% endfor %}
         </select>
         {% else %}
-        <input type="text" name="field_{{ f.id }}" {% if f.is_required %}required{% endif %}>
+        <input type="text" name="field_{{ f.id }}" value="{{ f.value }}" placeholder="{{ f.placeholder }}" {% if f.is_required %}required{% endif %}>
         {% endif %}
     </label>
     {% endfor %}

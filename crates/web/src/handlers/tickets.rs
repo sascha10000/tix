@@ -72,6 +72,7 @@ struct StatusOption {
     name: String,
 }
 
+#[allow(dead_code)]
 struct FieldInput {
     id: i64,
     name: String,
@@ -81,6 +82,8 @@ struct FieldInput {
     num_min: Option<f64>,
     num_max: Option<f64>,
     num_step: Option<f64>,
+    placeholder: String,
+    default_value: String,
 }
 
 #[derive(Template)]
@@ -239,15 +242,24 @@ pub async fn new_page(
     let fields = if let Some(type_id) = query.type_id {
         ticket_type::list_fields(&conn, type_id)
             .into_iter()
-            .map(|f| FieldInput {
-                id: f.id,
-                name: f.name,
-                field_type: f.field_type,
-                is_required: f.is_required,
-                value: String::new(),
-                num_min: f.num_min,
-                num_max: f.num_max,
-                num_step: f.num_step,
+            .map(|f| {
+                let value = if f.default_value.is_empty() {
+                    String::new()
+                } else {
+                    f.default_value.clone()
+                };
+                FieldInput {
+                    id: f.id,
+                    name: f.name,
+                    field_type: f.field_type,
+                    is_required: f.is_required,
+                    value,
+                    num_min: f.num_min,
+                    num_max: f.num_max,
+                    num_step: f.num_step,
+                    placeholder: f.placeholder,
+                    default_value: f.default_value,
+                }
             })
             .collect()
     } else {
@@ -462,6 +474,8 @@ pub async fn edit_page(
             num_min: fv.num_min,
             num_max: fv.num_max,
             num_step: fv.num_step,
+            placeholder: fv.placeholder,
+            default_value: fv.default_value,
         })
         .collect();
 

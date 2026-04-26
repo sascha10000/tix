@@ -56,7 +56,8 @@ pub fn delete(conn: &Connection, id: i64) -> rusqlite::Result<()> {
 pub fn list_fields(conn: &Connection, ticket_type_id: i64) -> Vec<CustomField> {
     let mut stmt = conn
         .prepare(
-            "SELECT id, ticket_type_id, name, field_type, is_required, position, num_min, num_max, num_step
+            "SELECT id, ticket_type_id, name, field_type, is_required, position,
+                    num_min, num_max, num_step, placeholder, default_value
              FROM custom_fields WHERE ticket_type_id = ?1 ORDER BY position, name",
         )
         .unwrap();
@@ -71,6 +72,8 @@ pub fn list_fields(conn: &Connection, ticket_type_id: i64) -> Vec<CustomField> {
             num_min: row.get(6)?,
             num_max: row.get(7)?,
             num_step: row.get(8)?,
+            placeholder: row.get(9)?,
+            default_value: row.get(10)?,
         })
     })
     .unwrap()
@@ -88,11 +91,13 @@ pub fn add_field(
     num_min: Option<f64>,
     num_max: Option<f64>,
     num_step: Option<f64>,
+    placeholder: &str,
+    default_value: &str,
 ) -> rusqlite::Result<i64> {
     conn.execute(
-        "INSERT INTO custom_fields (ticket_type_id, name, field_type, is_required, position, num_min, num_max, num_step)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
-        params![ticket_type_id, name, field_type, is_required as i64, position, num_min, num_max, num_step],
+        "INSERT INTO custom_fields (ticket_type_id, name, field_type, is_required, position, num_min, num_max, num_step, placeholder, default_value)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+        params![ticket_type_id, name, field_type, is_required as i64, position, num_min, num_max, num_step, placeholder, default_value],
     )?;
     Ok(conn.last_insert_rowid())
 }
