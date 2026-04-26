@@ -74,6 +74,9 @@
 </form>
 
 {% when None %}
+{% if let Some(msg) = error %}
+<div class="alert alert-danger">{{ msg }}</div>
+{% endif %}
 <form method="post" action="/admin/ticket-types">
     <label>Name <input type="text" name="name" required autofocus></label>
     <label>Description <textarea name="description"></textarea></label>

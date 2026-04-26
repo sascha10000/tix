@@ -29,6 +29,7 @@ struct TicketTypeFormTemplate {
     edit: Option<TicketTypeEditView>,
     fields: Vec<FieldView>,
     available_templates: Vec<TemplateOption>,
+    error: Option<String>,
 }
 
 struct TemplateOption {
@@ -117,6 +118,7 @@ pub async fn new_page(
         edit: None,
         fields: vec![],
         available_templates,
+        error: None,
     })
 }
 
@@ -129,7 +131,28 @@ pub async fn create(
         return Err(AppError::Forbidden);
     }
     let conn = pool.get()?;
-    let id = ticket_type::create(&conn, &form.name, &form.description)?;
+    let id = match ticket_type::create(&conn, &form.name, &form.description) {
+        Ok(id) => id,
+        Err(e) => {
+            let available_templates: Vec<TemplateOption> = ticket_type::list_all(&conn)
+                .into_iter()
+                .map(|t| TemplateOption { id: t.id, name: t.name })
+                .collect();
+            let tmpl = TicketTypeFormTemplate {
+                user: auth_user,
+                edit: None,
+                fields: vec![],
+                available_templates,
+                error: Some(format!(
+                    "A ticket type with the name '{}' already exists. ({})",
+                    form.name, e
+                )),
+            };
+            return Ok(HttpResponse::Ok()
+                .content_type("text/html")
+                .body(tmpl.render().map_err(|e| AppError::Internal(e.to_string()))?));
+        }
+    };
 
     if let Some(template_id) = form.template_id {
         if template_id > 0 {
@@ -191,6 +214,7 @@ pub async fn edit_page(
         }),
         fields,
         available_templates: vec![],
+        error: None,
     })
 }
 
