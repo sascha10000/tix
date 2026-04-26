@@ -43,16 +43,12 @@ jobs:
       - name: Package binary (Unix)
         if: runner.os != 'Windows'
         run: |
-          cd target/${{ matrix.target }}/release
-          tar czf ../../../${{ matrix.artifact }}.tar.gz ticketsystem
-          cd ../../..
+          tar czf ${{ matrix.artifact }}.tar.gz -C target/${{ matrix.target }}/release ticketsystem -C ${{ github.workspace }} .env.example
 
       - name: Package binary (Windows)
         if: runner.os == 'Windows'
         run: |
-          cd target/${{ matrix.target }}/release
-          7z a ../../../${{ matrix.artifact }}.zip ticketsystem.exe
-          cd ../../..
+          7z a ${{ matrix.artifact }}.zip target/${{ matrix.target }}/release/ticketsystem.exe .env.example
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
