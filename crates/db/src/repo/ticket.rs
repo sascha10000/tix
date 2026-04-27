@@ -42,6 +42,51 @@ pub fn list_for_project(conn: &Connection, project_id: i64) -> Vec<Ticket> {
     .collect()
 }
 
+pub fn list_for_user(conn: &Connection, user_id: i64) -> Vec<(Ticket, String)> {
+    let mut stmt = conn
+        .prepare(
+            "SELECT t.id, t.project_id, t.ticket_type_id, t.status_id, t.creator_id,
+                    t.assignee_id, t.title, t.text, t.due_date, t.created_at, t.updated_at, t.is_deleted,
+                    u.username, a.username, s.name, s.color, tt.name, p.name
+             FROM tickets t
+             JOIN users u ON u.id = t.creator_id
+             JOIN users a ON a.id = t.assignee_id
+             JOIN statuses s ON s.id = t.status_id
+             JOIN ticket_types tt ON tt.id = t.ticket_type_id
+             JOIN projects p ON p.id = t.project_id
+             WHERE (t.assignee_id = ?1 OR t.creator_id = ?1) AND t.is_deleted = 0
+             ORDER BY t.updated_at DESC",
+        )
+        .unwrap();
+    stmt.query_map([user_id], |row| {
+        Ok((
+            Ticket {
+                id: row.get(0)?,
+                project_id: row.get(1)?,
+                ticket_type_id: row.get(2)?,
+                status_id: row.get(3)?,
+                creator_id: row.get(4)?,
+                assignee_id: row.get(5)?,
+                title: row.get(6)?,
+                text: row.get(7)?,
+                due_date: row.get(8)?,
+                created_at: row.get(9)?,
+                updated_at: row.get(10)?,
+                is_deleted: row.get::<_, i64>(11)? != 0,
+                creator_name: row.get(12)?,
+                assignee_name: row.get(13)?,
+                status_name: row.get(14)?,
+                status_color: row.get(15)?,
+                type_name: row.get(16)?,
+            },
+            row.get(17)?,
+        ))
+    })
+    .unwrap()
+    .filter_map(|r| r.ok())
+    .collect()
+}
+
 pub fn find_by_id(conn: &Connection, id: i64) -> Option<Ticket> {
     conn.query_row(
         "SELECT t.id, t.project_id, t.ticket_type_id, t.status_id, t.creator_id,

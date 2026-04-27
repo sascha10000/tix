@@ -11,6 +11,8 @@ use crate::middleware::{AuthenticatedUser, Lang};
 struct DashboardTemplate {
     user: AuthenticatedUser,
     projects: Vec<ProjectWithCount>,
+    assigned_tickets: Vec<UserTicket>,
+    created_tickets: Vec<UserTicket>,
     t: &'static Translations,
 }
 
@@ -19,6 +21,18 @@ struct ProjectWithCount {
     name: String,
     description: String,
     ticket_count: usize,
+}
+
+#[derive(Clone)]
+struct UserTicket {
+    id: i64,
+    project_id: i64,
+    project_name: String,
+    title: String,
+    status_name: String,
+    status_color: String,
+    due_date: String,
+    updated_at: String,
 }
 
 pub async fn index(
@@ -47,5 +61,29 @@ pub async fn index(
         })
         .collect();
 
-    DashboardTemplate { user, projects, t }
+    let user_tickets = ticket::list_for_user(&conn, user.id);
+
+    let mut assigned_tickets = Vec::new();
+    let mut created_tickets = Vec::new();
+
+    for (row, project_name) in user_tickets {
+        let ut = UserTicket {
+            id: row.id,
+            project_id: row.project_id,
+            project_name,
+            title: row.title,
+            status_name: row.status_name,
+            status_color: row.status_color,
+            due_date: row.due_date,
+            updated_at: row.updated_at,
+        };
+        if row.assignee_id == user.id {
+            assigned_tickets.push(ut.clone());
+        }
+        if row.creator_id == user.id {
+            created_tickets.push(ut);
+        }
+    }
+
+    DashboardTemplate { user, projects, assigned_tickets, created_tickets, t }
 }

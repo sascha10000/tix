@@ -73,6 +73,15 @@ pub struct Dashboard {
     pub col_project: &'static str,
     pub col_description: &'static str,
     pub col_tickets: &'static str,
+    pub assigned_to_you: &'static str,
+    pub created_by_you: &'static str,
+    pub no_assigned: &'static str,
+    pub no_created: &'static str,
+    pub col_title: &'static str,
+    pub col_status: &'static str,
+    pub col_due_date: &'static str,
+    pub col_updated: &'static str,
+    pub overdue: &'static str,
 }
 
 pub struct Profile {

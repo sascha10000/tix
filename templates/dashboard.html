@@ -6,6 +6,62 @@
 <h1>{{ t.dashboard.title }}</h1>
 <p>{{ t.dashboard.welcome }}, {{ user.username }}!</p>
 
+<h2>{{ t.dashboard.assigned_to_you }}</h2>
+{% if assigned_tickets.is_empty() %}
+<p>{{ t.dashboard.no_assigned }}</p>
+{% else %}
+<table>
+    <thead>
+        <tr>
+            <th>{{ t.dashboard.col_title }}</th>
+            <th>{{ t.dashboard.col_project }}</th>
+            <th>{{ t.dashboard.col_status }}</th>
+            <th>{{ t.dashboard.col_due_date }}</th>
+            <th>{{ t.dashboard.col_updated }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tk in assigned_tickets %}
+        <tr>
+            <td><a href="/projects/{{ tk.project_id }}/tickets/{{ tk.id }}">{{ tk.title }}</a></td>
+            <td><a href="/projects/{{ tk.project_id }}/tickets">{{ tk.project_name }}</a></td>
+            <td><span class="badge" style="background-color: {{ tk.status_color }}">{{ tk.status_name }}</span></td>
+            <td>{{ tk.due_date }}</td>
+            <td>{{ tk.updated_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<h2>{{ t.dashboard.created_by_you }}</h2>
+{% if created_tickets.is_empty() %}
+<p>{{ t.dashboard.no_created }}</p>
+{% else %}
+<table>
+    <thead>
+        <tr>
+            <th>{{ t.dashboard.col_title }}</th>
+            <th>{{ t.dashboard.col_project }}</th>
+            <th>{{ t.dashboard.col_status }}</th>
+            <th>{{ t.dashboard.col_due_date }}</th>
+            <th>{{ t.dashboard.col_updated }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for tk in created_tickets %}
+        <tr>
+            <td><a href="/projects/{{ tk.project_id }}/tickets/{{ tk.id }}">{{ tk.title }}</a></td>
+            <td><a href="/projects/{{ tk.project_id }}/tickets">{{ tk.project_name }}</a></td>
+            <td><span class="badge" style="background-color: {{ tk.status_color }}">{{ tk.status_name }}</span></td>
+            <td>{{ tk.due_date }}</td>
+            <td>{{ tk.updated_at }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
 <h2>{{ t.dashboard.your_projects }}</h2>
 {% if projects.is_empty() %}
 <p>{{ t.dashboard.no_projects }}{% if user.is_admin() %} <a href="/projects/new">{{ t.dashboard.create_one }}</a>.{% endif %}</p>
