@@ -1,0 +1,49 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "tix." [ref=e4] [cursor=pointer]:
+        - /url: /
+      - link "Projects" [ref=e6] [cursor=pointer]:
+        - /url: /projects
+      - link "Users" [ref=e7] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Statuses" [ref=e8] [cursor=pointer]:
+        - /url: /admin/statuses
+      - link "Types" [ref=e9] [cursor=pointer]:
+        - /url: /admin/ticket-types
+    - generic [ref=e10]:
+      - button "Toggle theme" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+      - link "admin admin" [ref=e16] [cursor=pointer]:
+        - /url: /profile
+      - button "Logout" [ref=e18] [cursor=pointer]
+  - main [ref=e19]:
+    - heading "Test - Tickets" [level=1] [ref=e20]
+    - link "New Ticket" [ref=e21] [cursor=pointer]:
+      - /url: /projects/1/tickets/new
+    - link "Project Settings" [ref=e22] [cursor=pointer]:
+      - /url: /projects/1
+    - table [ref=e23]:
+      - rowgroup [ref=e24]:
+        - row "# Title Type Status Assignee Due Date Creator Updated" [ref=e25]:
+          - columnheader "#" [ref=e26]
+          - columnheader "Title" [ref=e27]
+          - columnheader "Type" [ref=e28]
+          - columnheader "Status" [ref=e29]
+          - columnheader "Assignee" [ref=e30]
+          - columnheader "Due Date" [ref=e31]
+          - columnheader "Creator" [ref=e32]
+          - columnheader "Updated" [ref=e33]
+      - rowgroup [ref=e34]:
+        - row "1 Bitte mach kein Mist Bug New test 2026-04-29 admin 2026-04-26 17:37:20" [ref=e35]:
+          - cell "1" [ref=e36]
+          - cell "Bitte mach kein Mist" [ref=e37]:
+            - link "Bitte mach kein Mist" [ref=e38] [cursor=pointer]:
+              - /url: /projects/1/tickets/1
+          - cell "Bug" [ref=e39]
+          - cell "New" [ref=e40]:
+            - generic [ref=e41]: New
+          - cell "test" [ref=e42]
+          - cell "2026-04-29" [ref=e43]
+          - cell "admin" [ref=e44]
+          - cell "2026-04-26 17:37:20" [ref=e45]

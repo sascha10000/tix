@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "tix." [ref=e4] [cursor=pointer]:
+        - /url: /
+      - link "Projects" [ref=e6] [cursor=pointer]:
+        - /url: /projects
+      - link "Users" [ref=e7] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Statuses" [ref=e8] [cursor=pointer]:
+        - /url: /admin/statuses
+      - link "Types" [ref=e9] [cursor=pointer]:
+        - /url: /admin/ticket-types
+    - generic [ref=e10]:
+      - button "Toggle theme" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+      - link "admin admin" [ref=e16] [cursor=pointer]:
+        - /url: /profile
+      - button "Logout" [ref=e18] [cursor=pointer]
+  - main [ref=e19]:
+    - heading "Test" [level=1] [ref=e20]
+    - paragraph [ref=e21]: test
+    - link "View Tickets" [ref=e22] [cursor=pointer]:
+      - /url: /projects/1/tickets
+    - link "Edit Project" [ref=e23] [cursor=pointer]:
+      - /url: /projects/1/edit
+    - button "Delete Project" [ref=e25] [cursor=pointer]
+    - heading "Members" [level=2] [ref=e26]
+    - table [ref=e27]:
+      - rowgroup [ref=e28]:
+        - row "User Role" [ref=e29]:
+          - columnheader "User" [ref=e30]
+          - columnheader "Role" [ref=e31]
+          - columnheader [ref=e32]
+      - rowgroup [ref=e33]:
+        - row "admin manager Remove" [ref=e34]:
+          - cell "admin" [ref=e35]
+          - cell "manager" [ref=e36]
+          - cell "Remove" [ref=e37]:
+            - button "Remove" [ref=e39] [cursor=pointer]
+        - row "test manager Remove" [ref=e40]:
+          - cell "test" [ref=e41]
+          - cell "manager" [ref=e42]
+          - cell "Remove" [ref=e43]:
+            - button "Remove" [ref=e45] [cursor=pointer]
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]: User
+        - combobox "User" [ref=e49]:
+          - option "admin" [selected]
+          - option "test"
+      - generic [ref=e50]:
+        - generic [ref=e51]: Role
+        - combobox "Role" [ref=e52]:
+          - option "Manager" [selected]
+          - option "Member"
+          - option "Reporter"
+      - button "Add" [ref=e54] [cursor=pointer]
+    - heading "Active Statuses" [level=2] [ref=e55]
+    - button "New" [ref=e58] [cursor=pointer]:
+      - generic [ref=e59]: New
+    - heading "Active Ticket Types" [level=2] [ref=e60]
+    - generic [ref=e61]:
+      - button "Bug" [ref=e63] [cursor=pointer]
+      - button "Epic" [ref=e65] [cursor=pointer]
+      - button "Task" [ref=e67] [cursor=pointer]

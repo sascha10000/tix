@@ -1,0 +1,65 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "tix." [ref=e4] [cursor=pointer]:
+        - /url: /
+      - link "Projects" [ref=e6] [cursor=pointer]:
+        - /url: /projects
+      - link "Users" [ref=e7] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Statuses" [ref=e8] [cursor=pointer]:
+        - /url: /admin/statuses
+      - link "Types" [ref=e9] [cursor=pointer]:
+        - /url: /admin/ticket-types
+    - generic [ref=e10]:
+      - button "Toggle theme" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+      - link "admin admin" [ref=e16] [cursor=pointer]:
+        - /url: /profile
+      - button "Logout" [ref=e18] [cursor=pointer]
+  - main [ref=e19]:
+    - heading "Dashboard" [level=1] [ref=e20]
+    - paragraph [ref=e21]: Welcome, admin!
+    - heading "Assigned to You" [level=2] [ref=e22]
+    - paragraph [ref=e23]: No tickets assigned to you.
+    - heading "Created by You" [level=2] [ref=e24]
+    - table [ref=e25]:
+      - rowgroup [ref=e26]:
+        - row "Title Project Status Due Date Updated" [ref=e27]:
+          - columnheader "Title" [ref=e28]
+          - columnheader "Project" [ref=e29]
+          - columnheader "Status" [ref=e30]
+          - columnheader "Due Date" [ref=e31]
+          - columnheader "Updated" [ref=e32]
+      - rowgroup [ref=e33]:
+        - row "Bitte mach kein Mist Test New 2026-04-29 2026-04-26 17:37:20" [ref=e34]:
+          - cell "Bitte mach kein Mist" [ref=e35]:
+            - link "Bitte mach kein Mist" [ref=e36] [cursor=pointer]:
+              - /url: /projects/1/tickets/1
+          - cell "Test" [ref=e37]:
+            - link "Test" [ref=e38] [cursor=pointer]:
+              - /url: /projects/1/tickets
+          - cell "New" [ref=e39]:
+            - generic [ref=e40]: New
+          - cell "2026-04-29" [ref=e41]
+          - cell "2026-04-26 17:37:20" [ref=e42]
+    - heading "Your Projects" [level=2] [ref=e43]
+    - table [ref=e44]:
+      - rowgroup [ref=e45]:
+        - row "Project Description Tickets" [ref=e46]:
+          - columnheader "Project" [ref=e47]
+          - columnheader "Description" [ref=e48]
+          - columnheader "Tickets" [ref=e49]
+      - rowgroup [ref=e50]:
+        - row "Test test 1" [ref=e51]:
+          - cell "Test" [ref=e52]:
+            - link "Test" [ref=e53] [cursor=pointer]:
+              - /url: /projects/1/tickets
+          - cell "test" [ref=e54]
+          - cell "1" [ref=e55]
+        - row "Test2 test 0" [ref=e56]:
+          - cell "Test2" [ref=e57]:
+            - link "Test2" [ref=e58] [cursor=pointer]:
+              - /url: /projects/2/tickets
+          - cell "test" [ref=e59]
+          - cell "0" [ref=e60]

@@ -492,6 +492,135 @@
             color: var(--c-text-secondary);
         }
 
+        /* ── Screenshots ── */
+        .screenshots {
+            background: var(--c-surface);
+            border-top: 1px solid var(--c-border-subtle);
+            border-bottom: 1px solid var(--c-border-subtle);
+            overflow: hidden;
+        }
+
+        .screenshots-track {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            padding-bottom: 1.5rem;
+            -ms-overflow-style: none;
+            scrollbar-width: thin;
+            scrollbar-color: var(--c-border) transparent;
+        }
+
+        .screenshots-track::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .screenshots-track::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .screenshots-track::-webkit-scrollbar-thumb {
+            background: var(--c-border);
+            border-radius: 3px;
+        }
+
+        .screenshot-item {
+            flex: 0 0 min(720px, 85vw);
+            scroll-snap-align: center;
+        }
+
+        .screenshot-frame {
+            background: var(--c-bg);
+            border: 1px solid var(--c-border);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+
+        .screenshot-frame:hover {
+            border-color: var(--c-accent);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--c-accent-muted);
+        }
+
+        [data-theme="light"] .screenshot-frame {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="light"] .screenshot-frame:hover {
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.12), 0 0 0 1px var(--c-accent-muted);
+        }
+
+        .screenshot-chrome {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.5rem 0.875rem;
+            background: var(--c-surface-raised);
+            border-bottom: 1px solid var(--c-border-subtle);
+        }
+
+        .screenshot-chrome-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--c-border);
+        }
+
+        .screenshot-chrome-dot:nth-child(1) { background: #ff5f57; }
+        .screenshot-chrome-dot:nth-child(2) { background: #febc2e; }
+        .screenshot-chrome-dot:nth-child(3) { background: #28c840; }
+
+        .screenshot-chrome-title {
+            flex: 1;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--c-text-tertiary);
+            letter-spacing: 0.01em;
+        }
+
+        .screenshot-frame img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .screenshot-caption {
+            margin-top: 0.75rem;
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--c-text-secondary);
+            text-align: center;
+            letter-spacing: 0.01em;
+        }
+
+        .screenshots-nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .screenshots-nav button {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid var(--c-border);
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .screenshots-nav button.active,
+        .screenshots-nav button:hover {
+            background: var(--c-accent);
+            border-color: var(--c-accent);
+        }
+
         /* ── How it works ── */
         .how-it-works {
             background: var(--c-surface);
@@ -784,6 +913,7 @@
         <a href="#" class="lp-brand">tix<span class="dot">.</span></a>
         <div class="lp-nav-links">
             <a href="#features">Features</a>
+            <a href="#screenshots">Screenshots</a>
             <a href="#how-it-works">How it works</a>
             <a href="#architecture">Architecture</a>
         </div>
@@ -883,6 +1013,73 @@
                 <h3>Per-Project Config</h3>
                 <p>Activate specific statuses and ticket types per project. Same system, different workflows.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Screenshots ── -->
+<section class="screenshots" id="screenshots">
+    <div class="section-inner">
+        <div class="section-label">See it in action</div>
+        <div class="section-title">Clean interface.<br>Zero clutter.</div>
+        <p class="section-desc">Dark by default, fast everywhere. Here's what you're shipping.</p>
+
+        <div class="screenshots-track" id="screenshotsTrack">
+            <div class="screenshot-item fade-in">
+                <div class="screenshot-frame">
+                    <div class="screenshot-chrome">
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-title">localhost:8080</span>
+                    </div>
+                    <img src="screenshots/dashboard.png" alt="tix dashboard showing assigned tickets, created tickets, and project list" loading="lazy">
+                </div>
+                <div class="screenshot-caption">Dashboard — your tickets and projects at a glance</div>
+            </div>
+            <div class="screenshot-item fade-in">
+                <div class="screenshot-frame">
+                    <div class="screenshot-chrome">
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-title">localhost:8080/projects/1/tickets</span>
+                    </div>
+                    <img src="screenshots/ticket-list.png" alt="Ticket list view with status badges, assignees, and due dates" loading="lazy">
+                </div>
+                <div class="screenshot-caption">Ticket list — filter, sort, and track everything</div>
+            </div>
+            <div class="screenshot-item fade-in">
+                <div class="screenshot-frame">
+                    <div class="screenshot-chrome">
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-title">localhost:8080/projects/1/tickets/1</span>
+                    </div>
+                    <img src="screenshots/ticket-detail.png" alt="Ticket detail view showing status, type, assignee, description and actions" loading="lazy">
+                </div>
+                <div class="screenshot-caption">Ticket detail — all context in one place</div>
+            </div>
+            <div class="screenshot-item fade-in">
+                <div class="screenshot-frame">
+                    <div class="screenshot-chrome">
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-dot"></span>
+                        <span class="screenshot-chrome-title">localhost:8080/projects/1</span>
+                    </div>
+                    <img src="screenshots/project-view.png" alt="Project settings with members, roles, statuses, and ticket types" loading="lazy">
+                </div>
+                <div class="screenshot-caption">Project config — members, statuses, and ticket types</div>
+            </div>
+        </div>
+
+        <div class="screenshots-nav" id="screenshotsNav">
+            <button class="active" aria-label="Screenshot 1"></button>
+            <button aria-label="Screenshot 2"></button>
+            <button aria-label="Screenshot 3"></button>
+            <button aria-label="Screenshot 4"></button>
         </div>
     </div>
 </section>
@@ -1010,6 +1207,32 @@
         });
     }, { threshold: 0.15 });
     els.forEach(function(el) { obs.observe(el); });
+})();
+
+// Screenshots nav
+(function() {
+    var track = document.getElementById('screenshotsTrack');
+    var nav = document.getElementById('screenshotsNav');
+    if (!track || !nav) return;
+    var dots = nav.querySelectorAll('button');
+    var items = track.querySelectorAll('.screenshot-item');
+
+    dots.forEach(function(dot, i) {
+        dot.addEventListener('click', function() {
+            items[i].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        });
+    });
+
+    var scrollObs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) {
+                var idx = Array.prototype.indexOf.call(items, e.target);
+                dots.forEach(function(d, j) { d.classList.toggle('active', j === idx); });
+            }
+        });
+    }, { root: track, threshold: 0.6 });
+
+    items.forEach(function(item) { scrollObs.observe(item); });
 })();
 </script>
 

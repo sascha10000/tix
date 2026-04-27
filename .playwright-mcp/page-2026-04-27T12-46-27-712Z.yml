@@ -1,0 +1,183 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "tix." [ref=e4] [cursor=pointer]:
+        - /url: "#"
+      - generic [ref=e5]:
+        - link "Features" [ref=e6] [cursor=pointer]:
+          - /url: "#features"
+        - link "Screenshots" [ref=e7] [cursor=pointer]:
+          - /url: "#screenshots"
+        - link "How it works" [ref=e8] [cursor=pointer]:
+          - /url: "#how-it-works"
+        - link "Architecture" [ref=e9] [cursor=pointer]:
+          - /url: "#architecture"
+    - generic [ref=e10]:
+      - button "Toggle theme" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+      - link "Get Started" [ref=e15] [cursor=pointer]:
+        - /url: "#get-started"
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - img [ref=e19]
+      - text: Self-hosted · Single binary · Zero config
+    - heading "Ticket management, distilled." [level=1] [ref=e21]:
+      - text: Ticket management,
+      - emphasis [ref=e22]: distilled.
+    - paragraph [ref=e23]: A fast, self-hosted ticket system built with Rust. Ships as one binary, runs on SQLite. No containers, no infrastructure team, no complexity tax.
+    - generic [ref=e24]:
+      - link "Get Started" [ref=e25] [cursor=pointer]:
+        - /url: "#get-started"
+      - link "See Features" [ref=e26] [cursor=pointer]:
+        - /url: "#features"
+      - link "⬇ Download" [ref=e27] [cursor=pointer]:
+        - /url: https://github.com/sascha10000/tix/releases
+    - generic [ref=e28]:
+      - generic [ref=e33]: terminal
+      - generic [ref=e34]:
+        - generic [ref=e35]: $ cargo build --release
+        - generic [ref=e36]: Compiling ticketsystem v0.1.0
+        - generic [ref=e37]: Finished release [optimized]
+        - generic [ref=e39]: $ ./target/release/ticketsystem
+        - generic [ref=e40]: Server running at http://127.0.0.1:8080
+  - generic [ref=e42]:
+    - generic [ref=e43]: Features
+    - generic [ref=e44]:
+      - text: Everything you need.
+      - text: Nothing you don't.
+    - paragraph [ref=e45]: Built for teams that want structure without ceremony. Every feature earns its place.
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - img [ref=e49]
+        - heading "Custom Ticket Types" [level=3] [ref=e52]
+        - paragraph [ref=e53]: Define Bug, Feature, Task, or anything else. Each type gets its own fields, configured by you.
+      - generic [ref=e54]:
+        - img [ref=e56]
+        - heading "Assignees & Due Dates" [level=3] [ref=e60]
+        - paragraph [ref=e61]: Every ticket requires an owner and a deadline. No ambiguity about who does what, by when.
+      - generic [ref=e62]:
+        - img [ref=e64]
+        - heading "Custom Fields" [level=3] [ref=e67]
+        - paragraph [ref=e68]: Text, numbers, dates, user references, ticket links. Attach structured data to any ticket type.
+      - generic [ref=e69]:
+        - img [ref=e71]
+        - heading "Workflow Engine" [level=3] [ref=e73]
+        - paragraph [ref=e74]: Define allowed status transitions with a visual matrix. Enforce process without code.
+      - generic [ref=e75]:
+        - img [ref=e77]
+        - heading "Project Roles" [level=3] [ref=e81]
+        - paragraph [ref=e82]: Manager, Member, Reporter. Scoped per project. Admins see everything; everyone else sees what they should.
+      - generic [ref=e83]:
+        - img [ref=e85]
+        - heading "Per-Project Config" [level=3] [ref=e88]
+        - paragraph [ref=e89]: Activate specific statuses and ticket types per project. Same system, different workflows.
+  - generic [ref=e91]:
+    - generic [ref=e92]: See it in action
+    - generic [ref=e93]:
+      - text: Clean interface.
+      - text: Zero clutter.
+    - paragraph [ref=e94]: Dark by default, fast everywhere. Here's what you're shipping.
+    - generic [ref=e95]:
+      - generic [ref=e96]:
+        - generic [ref=e97]:
+          - generic [ref=e102]: localhost:8080
+          - img "tix dashboard showing assigned tickets, created tickets, and project list"
+        - generic [ref=e103]: Dashboard — your tickets and projects at a glance
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - generic [ref=e110]: localhost:8080/projects/1/tickets
+          - img "Ticket list view with status badges, assignees, and due dates"
+        - generic [ref=e111]: Ticket list — filter, sort, and track everything
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e118]: localhost:8080/projects/1/tickets/1
+          - img "Ticket detail view showing status, type, assignee, description and actions"
+        - generic [ref=e119]: Ticket detail — all context in one place
+      - generic [ref=e120]:
+        - generic [ref=e121]:
+          - generic [ref=e126]: localhost:8080/projects/1
+          - img "Project settings with members, roles, statuses, and ticket types"
+        - generic [ref=e127]: Project config — members, statuses, and ticket types
+    - generic [ref=e128]:
+      - button "Screenshot 1" [ref=e129] [cursor=pointer]
+      - button "Screenshot 2" [ref=e130] [cursor=pointer]
+      - button "Screenshot 3" [ref=e131] [cursor=pointer]
+      - button "Screenshot 4" [ref=e132] [cursor=pointer]
+  - generic [ref=e134]:
+    - generic [ref=e135]: Setup
+    - generic [ref=e136]: Running in four steps.
+    - paragraph [ref=e137]: From zero to tracking tickets in under five minutes.
+    - generic [ref=e138]:
+      - generic [ref=e139]:
+        - heading "Build" [level=3] [ref=e140]
+        - paragraph [ref=e141]:
+          - text: Clone the repo and run
+          - code [ref=e142]: cargo build --release
+          - text: . One binary, no Docker required.
+      - generic [ref=e143]:
+        - heading "Configure" [level=3] [ref=e144]
+        - paragraph [ref=e145]:
+          - text: Copy
+          - code [ref=e146]: .env.example
+          - text: to
+          - code [ref=e147]: .env
+          - text: . Set your admin credentials and bind address.
+      - generic [ref=e148]:
+        - heading "Launch" [level=3] [ref=e149]
+        - paragraph [ref=e150]: Run the binary. The database, schema, and admin user are created automatically on first start.
+      - generic [ref=e151]:
+        - heading "Organize" [level=3] [ref=e152]
+        - paragraph [ref=e153]: Create statuses, define ticket types, set up projects, invite your team. Start tracking work.
+  - generic [ref=e155]:
+    - generic [ref=e156]: Architecture
+    - generic [ref=e157]: Simple stack. No surprises.
+    - paragraph [ref=e158]: Every layer chosen for reliability and zero operational overhead.
+    - generic [ref=e159]:
+      - generic [ref=e160]:
+        - generic [ref=e161]:
+          - generic [ref=e162]: Server
+          - generic [ref=e163]: Actix-web (Rust)
+        - generic [ref=e164]:
+          - generic [ref=e165]: Templates
+          - generic [ref=e166]: Askama (compile-time)
+        - generic [ref=e167]:
+          - generic [ref=e168]: Database
+          - generic [ref=e169]: SQLite + r2d2 pool
+        - generic [ref=e170]:
+          - generic [ref=e171]: Auth
+          - generic [ref=e172]: Argon2 + session cookies
+        - generic [ref=e173]:
+          - generic [ref=e174]: Assets
+          - generic [ref=e175]: Embedded in binary
+      - generic [ref=e176]:
+        - heading "One binary. One file. Done." [level=3] [ref=e177]
+        - paragraph [ref=e178]: The entire application compiles to a single executable. CSS is embedded at build time. The database is a single SQLite file with WAL mode enabled. Migrations run automatically.
+        - paragraph [ref=e179]: There is no build pipeline, no runtime, no container orchestration. Deploy it anywhere you can run a binary.
+        - list [ref=e180]:
+          - listitem [ref=e181]: No Node.js, no npm, no webpack
+          - listitem [ref=e182]: No Postgres, no Redis, no message queue
+          - listitem [ref=e183]: No Docker required (but works in one if you want)
+          - listitem [ref=e184]: Backup = copy one .db file
+  - generic [ref=e186]:
+    - generic [ref=e187]: Get Started
+    - generic [ref=e188]: Ready to ship?
+    - paragraph [ref=e189]: Three commands. No credit card. No vendor lock-in. Your data stays on your server.
+    - generic [ref=e190]:
+      - link "View on GitHub" [ref=e191] [cursor=pointer]:
+        - /url: https://github.com/sascha10000/tix
+      - link "⬇ Download (Win & macOS)" [ref=e192] [cursor=pointer]:
+        - /url: https://github.com/sascha10000/tix/releases
+      - link "Read the Docs" [ref=e193] [cursor=pointer]:
+        - /url: "#architecture"
+    - generic [ref=e194]: $ git clone && cargo build --release && ./target/release/ticketsystem
+  - contentinfo [ref=e195]:
+    - generic [ref=e196]:
+      - generic [ref=e197]: tix.
+      - generic [ref=e198]:
+        - link "Features" [ref=e199] [cursor=pointer]:
+          - /url: "#features"
+        - link "Architecture" [ref=e200] [cursor=pointer]:
+          - /url: "#architecture"
+        - link "GitHub" [ref=e201] [cursor=pointer]:
+          - /url: https://github.com/sascha10000/tix
+      - generic [ref=e202]: Built with Rust + SQLite

@@ -1,0 +1,38 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link "tix." [ref=e4] [cursor=pointer]:
+        - /url: /
+      - link "Projects" [ref=e6] [cursor=pointer]:
+        - /url: /projects
+      - link "Users" [ref=e7] [cursor=pointer]:
+        - /url: /admin/users
+      - link "Statuses" [ref=e8] [cursor=pointer]:
+        - /url: /admin/statuses
+      - link "Types" [ref=e9] [cursor=pointer]:
+        - /url: /admin/ticket-types
+    - generic [ref=e10]:
+      - button "Toggle theme" [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+      - link "admin admin" [ref=e16] [cursor=pointer]:
+        - /url: /profile
+      - button "Logout" [ref=e18] [cursor=pointer]
+  - main [ref=e19]:
+    - heading "Bitte mach kein Mist" [level=1] [ref=e20]
+    - generic [ref=e21]:
+      - generic [ref=e22]: New
+      - generic [ref=e23]: "Type: Bug"
+      - generic [ref=e24]: "Creator: admin"
+      - generic [ref=e25]: "Assignee: test"
+      - generic [ref=e26]: "Due: 2026-04-29"
+      - generic [ref=e27]: "Created: 2026-04-26 17:37:11"
+      - generic [ref=e28]: "Updated: 2026-04-26 17:37:20"
+    - generic [ref=e29]:
+      - heading "Description" [level=3] [ref=e30]
+      - paragraph [ref=e31]: This is some text
+    - generic [ref=e32]:
+      - link "Edit" [ref=e33] [cursor=pointer]:
+        - /url: /projects/1/tickets/1/edit
+      - button "Delete" [ref=e35] [cursor=pointer]
+    - link "Back to list" [ref=e36] [cursor=pointer]:
+      - /url: /projects/1/tickets
