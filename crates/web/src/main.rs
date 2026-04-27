@@ -15,8 +15,8 @@ struct Args {
     migrate: bool,
 }
 
-const EMBEDDED_CSS: &str = include_str!("../../../static/style.css");
-const EMBEDDED_FAVICON: &str = include_str!("../../../static/favicon.svg");
+const EMBEDDED_CSS: &str = include_str!("../../../landingpage/static/style.css");
+const EMBEDDED_FAVICON: &str = include_str!("../../../landingpage/static/favicon.svg");
 
 async fn serve_css() -> HttpResponse {
     HttpResponse::Ok()
