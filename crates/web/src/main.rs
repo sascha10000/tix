@@ -16,11 +16,18 @@ struct Args {
 }
 
 const EMBEDDED_CSS: &str = include_str!("../../../static/style.css");
+const EMBEDDED_FAVICON: &str = include_str!("../../../static/favicon.svg");
 
 async fn serve_css() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("text/css")
         .body(EMBEDDED_CSS)
+}
+
+async fn serve_favicon() -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("image/svg+xml")
+        .body(EMBEDDED_FAVICON)
 }
 
 /// Seed the default admin user if none exists (startup-only).
@@ -115,6 +122,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(session_hours))
             // Static files (embedded in binary)
             .route("/static/style.css", web::get().to(serve_css))
+            .route("/static/favicon.svg", web::get().to(serve_favicon))
             // Auth routes
             .route("/login", web::get().to(handlers::auth_handlers::login_page))
             .route("/login", web::post().to(handlers::auth_handlers::login_submit))
