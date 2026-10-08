@@ -3,25 +3,51 @@ name: Release
 on:
   push:
     tags:
-      - "**"
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      # --workspace builds all crates together so the language features of
+      # ticketsystem-core are enabled (it does not compile on its own).
+      - name: Run tests
+        run: cargo test --workspace --locked
+
   build:
+    needs: test
     strategy:
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
+          # Statically linked (musl): runs on any x86_64 Linux, independent of glibc.
+          - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
             artifact: ticketsystem-linux-x64
+            smoke-test: true
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             artifact: ticketsystem-windows-x64
+            smoke-test: true
           - target: aarch64-apple-darwin
             os: macos-latest
             artifact: ticketsystem-macos-aarch64
+            smoke-test: true
+          # Cross-compiled for Intel Macs on the Apple Silicon runner.
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            artifact: ticketsystem-macos-x64
+            smoke-test: false
 
     runs-on: ${{ matrix.os }}
 
@@ -37,8 +63,24 @@ jobs:
         with:
           key: ${{ matrix.target }}
 
+      # The bundled SQLite is C code and needs a musl C compiler.
+      - name: Install musl tools
+        if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Verify static linking
+        if: contains(matrix.target, 'musl')
+        run: |
+          file target/${{ matrix.target }}/release/ticketsystem
+          file target/${{ matrix.target }}/release/ticketsystem | grep -q "static"
+
+      - name: Smoke test binary
+        if: matrix.smoke-test
+        shell: bash
+        run: target/${{ matrix.target }}/release/ticketsystem --help
 
       - name: Package binary (Unix)
         if: runner.os != 'Windows'
