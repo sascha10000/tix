@@ -1612,6 +1612,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sha2"
+version = "0.10.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283"
+dependencies = [
+ "cfg-if",
+ "cpufeatures 0.2.17",
+ "digest 0.10.7",
+]
+
+[[package]]
 name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1710,7 +1721,9 @@ name = "ticketsystem-auth"
 version = "0.1.0"
 dependencies = [
  "argon2",
+ "base64",
  "password-hash",
+ "sha2",
 ]
 
 [[package]]
@@ -1742,9 +1755,11 @@ dependencies = [
  "clap",
  "dotenvy",
  "serde",
+ "serde_json",
  "ticketsystem-auth",
  "ticketsystem-core",
  "ticketsystem-db",
+ "url",
 ]
 
 [[package]]

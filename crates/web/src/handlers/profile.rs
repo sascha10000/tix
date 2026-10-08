@@ -4,7 +4,7 @@ use askama::Template;
 use serde::Deserialize;
 
 use ticketsystem_db::DbPool;
-use ticketsystem_db::repo::user;
+use ticketsystem_db::repo::{oauth, user};
 use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
 use crate::middleware::AuthenticatedUser;
@@ -13,11 +13,36 @@ use crate::middleware::Lang;
 #[derive(Template)]
 #[template(path = "profile.html")]
 struct ProfileTemplate {
+    connections: Vec<ConnectionView>,
     user: AuthenticatedUser,
     profile: ProfileView,
     success: Option<String>,
     error: Option<String>,
     t: &'static Translations,
+}
+
+struct ConnectionView {
+    client_id: String,
+    client_name: String,
+    scopes: Vec<&'static str>,
+    last_authorized: String,
+}
+
+/// Apps the user has authorized through OAuth (see `crate::oauth`).
+fn load_connections(
+    conn: &ticketsystem_db::rusqlite::Connection,
+    user_id: i64,
+    t: &'static Translations,
+) -> Vec<ConnectionView> {
+    oauth::list_connections(conn, user_id)
+        .into_iter()
+        .map(|c| ConnectionView {
+            scopes: crate::oauth::scope_labels(t, &c.scope),
+            client_id: c.client_id,
+            client_name: c.client_name,
+            last_authorized: c.last_issued_at,
+        })
+        .collect()
 }
 
 struct ProfileView {
@@ -47,6 +72,7 @@ pub async fn page(
         .ok_or(AppError::NotFound("User not found".into()))?;
 
     Ok(ProfileTemplate {
+        connections: load_connections(&conn, auth_user.id, t),
         user: auth_user,
         profile: ProfileView {
             username: u.username,
@@ -69,6 +95,7 @@ pub async fn update(
     match user::update_profile(&conn, auth_user.id, &form.username, &form.email) {
         Ok(_) => {
             let tmpl = ProfileTemplate {
+                connections: load_connections(&conn, auth_user.id, t),
                 user: auth_user,
                 profile: ProfileView {
                     username: form.username.clone(),
@@ -84,6 +111,7 @@ pub async fn update(
         }
         Err(e) => {
             let tmpl = ProfileTemplate {
+                connections: load_connections(&conn, auth_user.id, t),
                 user: auth_user,
                 profile: ProfileView {
                     username: form.username.clone(),
@@ -112,6 +140,7 @@ pub async fn change_password(
 
     if !ticketsystem_auth::verify_password(&form.current_password, &u.password_hash) {
         let tmpl = ProfileTemplate {
+            connections: load_connections(&conn, auth_user.id, t),
             user: auth_user,
             profile: ProfileView {
                 username: u.username,
@@ -131,6 +160,7 @@ pub async fn change_password(
     user::update_password(&conn, auth_user.id, &new_hash)?;
 
     let tmpl = ProfileTemplate {
+        connections: load_connections(&conn, auth_user.id, t),
         user: auth_user,
         profile: ProfileView {
             username: u.username,
@@ -143,4 +173,17 @@ pub async fn change_password(
     Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(tmpl.render().map_err(|e| AppError::Internal(e.to_string()))?))
+}
+
+/// Revokes all tokens the current user granted to one OAuth client.
+pub async fn revoke_connection(
+    auth_user: AuthenticatedUser,
+    pool: web::Data<DbPool>,
+    path: web::Path<String>,
+) -> Result<HttpResponse, AppError> {
+    let conn = pool.get()?;
+    oauth::delete_tokens_for(&conn, auth_user.id, &path.into_inner())?;
+    Ok(HttpResponse::SeeOther()
+        .insert_header(("Location", "/profile"))
+        .finish())
 }

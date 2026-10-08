@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use ticketsystem_db::DbPool;
 use ticketsystem_db::repo::{project, status, ticket, ticket_type, user};
 use ticketsystem_core::i18n::Translations;
+use crate::access::{can_edit_ticket, can_transition_ticket, check_project_access};
 use crate::errors::AppError;
 use crate::middleware::{AuthenticatedUser, Lang};
 
@@ -155,29 +156,6 @@ fn load_project_tickets(conn: &ticketsystem_db::rusqlite::Connection, project_id
             label: format!("#{} - {}", t.id, t.title),
         })
         .collect()
-}
-
-fn check_project_access(
-    conn: &ticketsystem_db::rusqlite::Connection,
-    user: &AuthenticatedUser,
-    project_id: i64,
-) -> Result<ticketsystem_core::models::project::Project, AppError> {
-    let p = project::find_by_id(conn, project_id)
-        .ok_or(AppError::NotFound("Project not found".into()))?;
-    if !user.is_admin() && !project::is_member(conn, project_id, user.id) {
-        return Err(AppError::Forbidden);
-    }
-    Ok(p)
-}
-
-fn can_edit_ticket(user: &AuthenticatedUser, project_role: Option<&str>, ticket_creator_id: i64) -> bool {
-    user.is_admin()
-        || matches!(project_role, Some("manager" | "member"))
-        || user.id == ticket_creator_id
-}
-
-fn can_transition_ticket(user: &AuthenticatedUser, project_role: Option<&str>) -> bool {
-    user.is_admin() || matches!(project_role, Some("manager" | "member"))
 }
 
 pub async fn list(

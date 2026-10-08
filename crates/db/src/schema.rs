@@ -1,5 +1,5 @@
 /// Current schema version. Must match the number of migrations in migrations.rs.
-const SCHEMA_VERSION: i64 = 6;
+const SCHEMA_VERSION: i64 = 7;
 
 /// Initial schema -- runs only when tables don't exist yet.
 /// This reflects the LATEST schema (post all migrations).
@@ -124,6 +124,35 @@ pub(crate) fn create_schema(conn: &rusqlite::Connection) {
             value           TEXT NOT NULL DEFAULT '',
             UNIQUE(ticket_id, custom_field_id)
         );
+
+        CREATE TABLE oauth_clients (
+            id            TEXT PRIMARY KEY,
+            name          TEXT NOT NULL,
+            redirect_uris TEXT NOT NULL,
+            created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE oauth_codes (
+            code_hash      TEXT PRIMARY KEY,
+            client_id      TEXT NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
+            user_id        INTEGER NOT NULL REFERENCES users(id),
+            redirect_uri   TEXT NOT NULL,
+            code_challenge TEXT NOT NULL,
+            scope          TEXT NOT NULL,
+            expires_at     TEXT NOT NULL
+        );
+
+        CREATE TABLE oauth_tokens (
+            token_hash TEXT PRIMARY KEY,
+            kind       TEXT NOT NULL CHECK (kind IN ('access', 'refresh')),
+            client_id  TEXT NOT NULL REFERENCES oauth_clients(id) ON DELETE CASCADE,
+            user_id    INTEGER NOT NULL REFERENCES users(id),
+            scope      TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            expires_at TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_oauth_tokens_user ON oauth_tokens(user_id, client_id);
         ",
     )
     .expect("Failed to create schema");

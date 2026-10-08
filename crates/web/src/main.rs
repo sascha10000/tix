@@ -1,6 +1,13 @@
+mod access;
+mod cors;
 mod errors;
 mod handlers;
+mod mcp;
 mod middleware;
+mod oauth;
+
+#[cfg(test)]
+mod integration_tests;
 
 use actix_web::{web, App, HttpResponse, HttpServer};
 use clap::Parser;
@@ -115,11 +122,22 @@ async fn main() -> std::io::Result<()> {
 
     let bind_address = config.bind_address.clone();
     let session_hours = config.session_duration_hours;
+    let oauth_settings = oauth::OAuthSettings {
+        base_url: config.public_base_url.clone(),
+        access_token_minutes: config.oauth_access_token_minutes,
+        refresh_token_minutes: config.oauth_refresh_token_days * 24 * 60,
+    };
+    println!("MCP endpoint at {}", oauth_settings.resource_url());
 
     HttpServer::new(move || {
         App::new()
+            .wrap(actix_web::middleware::from_fn(cors::cors))
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(session_hours))
+            .app_data(web::Data::new(oauth_settings.clone()))
+            // MCP server and its OAuth 2.1 authorization server
+            .configure(oauth::routes)
+            .configure(mcp::routes)
             // Static files (embedded in binary)
             .route("/static/style.css", web::get().to(serve_css))
             .route("/static/favicon.svg", web::get().to(serve_favicon))
@@ -133,6 +151,7 @@ async fn main() -> std::io::Result<()> {
             .route("/profile", web::get().to(handlers::profile::page))
             .route("/profile", web::post().to(handlers::profile::update))
             .route("/profile/password", web::post().to(handlers::profile::change_password))
+            .route("/profile/connections/{client_id}/revoke", web::post().to(handlers::profile::revoke_connection))
             // Dashboard
             .route("/", web::get().to(handlers::dashboard::index))
             // Admin (feature-gated)

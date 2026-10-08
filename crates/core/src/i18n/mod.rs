@@ -13,6 +13,7 @@ pub struct Translations {
     pub auth: Auth,
     pub dashboard: Dashboard,
     pub profile: Profile,
+    pub oauth: OAuth,
     pub projects: Projects,
     pub tickets: Tickets,
     pub admin: Admin,
@@ -93,6 +94,24 @@ pub struct Profile {
     pub current_password: &'static str,
     pub new_password: &'static str,
     pub change_password_btn: &'static str,
+}
+
+/// OAuth consent page and connected-apps section of the profile.
+pub struct OAuth {
+    pub consent_title: &'static str,
+    pub consent_intro: &'static str,
+    pub signed_in_as: &'static str,
+    pub redirect_notice: &'static str,
+    pub scope_read: &'static str,
+    pub scope_write: &'static str,
+    pub allow: &'static str,
+    pub deny: &'static str,
+    pub connected_apps: &'static str,
+    pub no_connected_apps: &'static str,
+    pub col_app: &'static str,
+    pub col_permissions: &'static str,
+    pub col_last_authorized: &'static str,
+    pub revoke: &'static str,
 }
 
 pub struct Projects {

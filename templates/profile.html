@@ -25,4 +25,26 @@
     <label>{{ t.profile.new_password }} <input type="password" name="new_password" required minlength="4"></label>
     <button type="submit" class="btn btn-primary">{{ t.profile.change_password_btn }}</button>
 </form>
+<h2>{{ t.oauth.connected_apps }}</h2>
+{% if connections.is_empty() %}
+<p>{{ t.oauth.no_connected_apps }}</p>
+{% else %}
+<table>
+    <thead><tr><th>{{ t.oauth.col_app }}</th><th>{{ t.oauth.col_permissions }}</th><th>{{ t.oauth.col_last_authorized }}</th><th></th></tr></thead>
+    <tbody>
+        {% for c in connections %}
+        <tr>
+            <td>{{ c.client_name }}</td>
+            <td>{% for s in c.scopes %}{{ s }}{% if !loop.last %}<br>{% endif %}{% endfor %}</td>
+            <td>{{ c.last_authorized }}</td>
+            <td>
+                <form method="post" action="/profile/connections/{{ c.client_id }}/revoke" style="display:inline">
+                    <button type="submit" class="btn btn-sm btn-danger">{{ t.oauth.revoke }}</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
 {% endblock %}

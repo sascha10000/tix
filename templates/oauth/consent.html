@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.oauth.consent_title }}{% endblock %}
+
+{% block content %}
+<h1>{{ t.oauth.consent_title }}</h1>
+<p><strong>{{ client_name }}</strong> {{ t.oauth.consent_intro }}.</p>
+<p>{{ t.oauth.signed_in_as }} <strong>{{ user.username }}</strong></p>
+
+<ul>
+    {% for label in scope_labels %}
+    <li>{{ label }}</li>
+    {% endfor %}
+</ul>
+
+<p>{{ t.oauth.redirect_notice }} <code>{{ redirect_host }}</code></p>
+
+<form method="post" action="/oauth/authorize" class="ticket-actions">
+    <input type="hidden" name="client_id" value="{{ client_id }}">
+    <input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+    <input type="hidden" name="code_challenge" value="{{ code_challenge }}">
+    <input type="hidden" name="scope" value="{{ scope }}">
+    <input type="hidden" name="state" value="{{ state }}">
+    <button type="submit" name="decision" value="allow" class="btn btn-primary">{{ t.oauth.allow }}</button>
+    <button type="submit" name="decision" value="deny" class="btn btn-ghost">{{ t.oauth.deny }}</button>
+</form>
+{% endblock %}

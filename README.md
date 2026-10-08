@@ -30,6 +30,57 @@ A self-hosted, lightweight ticket management system built with Rust. It uses ser
 - Build a workflow matrix to control which status transitions are allowed
 - Create ticket types and attach custom fields with validation constraints (min/max/step for numbers)
 
+## MCP Server
+
+The server exposes a [Model Context Protocol](https://modelcontextprotocol.io) endpoint at `/mcp` (Streamable HTTP transport, stateless JSON responses), so AI clients such as Claude Code, Claude.ai connectors, Cursor or MCP Inspector can work with tickets.
+
+### Connecting
+
+Only the URL is needed. The client discovers the OAuth server, registers itself, and opens a browser window. Log in with your normal account and approve the access on the consent page.
+
+```sh
+# Claude Code
+claude mcp add --transport http ticketsystem http://127.0.0.1:8080/mcp
+# then run /mcp inside Claude Code to authenticate
+
+# MCP Inspector
+npx @modelcontextprotocol/inspector   # transport: Streamable HTTP, URL: http://127.0.0.1:8080/mcp
+```
+
+Connected apps are listed on the **Profile** page, where they can be revoked. Deactivating a user invalidates their tokens immediately.
+
+### Tools
+
+Every tool runs as the authorizing user with the same project-membership and role rules as the web UI.
+
+| Tool | Scope | Description |
+|---|---|---|
+| `list_projects` | `tickets:read` | Projects you can access, with your role |
+| `get_project` | `tickets:read` | Active statuses, allowed transitions, ticket types with custom fields, members |
+| `list_tickets` | `tickets:read` | Tickets in a project; filter by status, assignee, type, text; paginated |
+| `get_ticket` | `tickets:read` | Full ticket with custom fields, allowed transitions and your permissions |
+| `list_my_tickets` | `tickets:read` | Tickets assigned to or created by you across projects |
+| `create_ticket` | `tickets:write` | Create a ticket (validates type, status, assignee, required/numeric/date fields) |
+| `update_ticket` | `tickets:write` | Partially update title, description, assignee, due date, custom fields |
+| `transition_ticket` | `tickets:write` | Change status along the configured workflow |
+
+Tickets cannot be deleted through MCP.
+
+### Authorization
+
+The MCP endpoint implements the [MCP authorization spec](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization), i.e. OAuth 2.1 with PKCE:
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /.well-known/oauth-protected-resource` | Protected resource metadata (RFC 9728) |
+| `GET /.well-known/oauth-authorization-server` | Authorization server metadata (RFC 8414) |
+| `POST /oauth/register` | Dynamic client registration (RFC 7591), public clients only |
+| `GET/POST /oauth/authorize` | Login + consent; authorization code grant with mandatory PKCE `S256` |
+| `POST /oauth/token` | Code exchange and refresh-token rotation |
+| `POST /oauth/revoke` | Token revocation (RFC 7009) |
+
+Tokens are opaque random values; only their SHA-256 hashes are stored. Redirect URIs must be `https://` or `http://` on a loopback host. When running behind a reverse proxy, set `PUBLIC_BASE_URL` to the public URL. Clients that run in the browser also need the proxy to pass through the CORS headers.
+
 ## Tech Stack
 
 - **Rust** with [Actix-web](https://actix.rs/) (HTTP server)
@@ -63,6 +114,9 @@ Available environment variables:
 | `ADMIN_DEFAULT_USERNAME` | `admin` | Initial admin username |
 | `ADMIN_DEFAULT_EMAIL` | `admin@localhost` | Initial admin email |
 | `ADMIN_DEFAULT_PASSWORD` | `admin` | Initial admin password |
+| `PUBLIC_BASE_URL` | `http://{BIND_ADDRESS}` | Externally reachable URL (OAuth issuer / MCP resource). Set this behind a reverse proxy |
+| `OAUTH_ACCESS_TOKEN_MINUTES` | `60` | Lifetime of MCP access tokens |
+| `OAUTH_REFRESH_TOKEN_DAYS` | `30` | Lifetime of MCP refresh tokens (rotated on every use) |
 
 ### Build and Run
 

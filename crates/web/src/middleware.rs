@@ -82,7 +82,8 @@ fn resolve_lang(req: &HttpRequest) -> &'static Translations {
     i18n::default()
 }
 
-fn extract_user(req: &HttpRequest) -> Option<AuthenticatedUser> {
+/// Resolves the session cookie to a user, without redirecting when absent.
+pub(crate) fn extract_user(req: &HttpRequest) -> Option<AuthenticatedUser> {
     let pool = req.app_data::<web::Data<DbPool>>()?;
     let cookie: Cookie = req.cookie("session_id")?;
     let session_id = cookie.value();
