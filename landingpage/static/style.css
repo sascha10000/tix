@@ -20,8 +20,8 @@
     --radius: 2px;
 }
 
-/* ── Dark theme (default) ── */
-:root, [data-theme="dark"] {
+/* ── Dark theme ── */
+[data-theme="dark"] {
     --c-bg: #0f0f0f;
     --c-surface: #1a1a1a;
     --c-surface-raised: #222222;
@@ -48,8 +48,8 @@
     color-scheme: dark;
 }
 
-/* ── Light theme ── */
-[data-theme="light"] {
+/* ── Light theme (default; applies unless dark is selected) ── */
+:root:not([data-theme="dark"]) {
     --c-bg: #f4f3f0;
     --c-surface: #ffffff;
     --c-surface-raised: #eae9e6;
@@ -630,6 +630,23 @@ tr:hover { background: var(--c-surface); }
     -webkit-text-fill-color: var(--c-text) !important;
 }
 
+/* ── Icon buttons ── */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
 /* ── Theme Toggle ── */
 .theme-toggle {
     display: inline-flex;
@@ -641,7 +658,7 @@ tr:hover { background: var(--c-surface); }
     background: transparent;
     border: 1px solid var(--c-border);
     border-radius: var(--radius);
-    color: var(--c-text-tertiary);
+    color: var(--c-text-secondary);
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
 }

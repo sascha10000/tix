@@ -428,3 +428,37 @@ async fn oauth_flow_and_mcp_tools() {
     assert_eq!(resp.status(), StatusCode::NO_CONTENT);
     assert!(resp.headers().get("access-control-allow-headers").unwrap().to_str().unwrap().contains("Authorization"));
 }
+
+#[actix_web::test]
+async fn deleting_a_project_removes_its_tickets() {
+    let fx = fixture();
+    let conn = fx.pool.get().unwrap();
+    let ticket_id = ticketsystem_db::repo::ticket::create(
+        &conn, fx.project_id, fx.bug_type_id, fx.open_id, fx.alice, fx.alice, "To delete", "", "2026-11-01",
+    )
+    .unwrap();
+    let field_id = ticket_type::list_fields(&conn, fx.bug_type_id)[0].id;
+    ticketsystem_db::repo::ticket::set_field_value(&conn, ticket_id, field_id, "3").unwrap();
+
+    project::delete(&conn, fx.project_id).unwrap();
+
+    let count = |sql: &str| -> i64 { conn.query_row(sql, [], |r| r.get(0)).unwrap() };
+    assert!(project::find_by_id(&conn, fx.project_id).is_none());
+    assert_eq!(count("SELECT COUNT(*) FROM tickets"), 0);
+    assert_eq!(count("SELECT COUNT(*) FROM ticket_field_values"), 0);
+    assert_eq!(count("SELECT COUNT(*) FROM project_members"), 0);
+    assert_eq!(count("SELECT COUNT(*) FROM project_statuses"), 0);
+}
+
+#[actix_web::test]
+async fn projects_are_sorted_case_insensitively() {
+    let fx = fixture();
+    let conn = fx.pool.get().unwrap();
+    for name in ["Zöllkau", "digiHub", "iNUX mbB", "Alpha"] {
+        project::create(&conn, name, "", fx.alice).unwrap();
+    }
+    let names: Vec<String> = project::list_all(&conn).into_iter().map(|p| p.name).collect();
+    assert_eq!(names, ["Alpha", "digiHub", "iNUX mbB", "Website", "Zöllkau"]);
+    let names: Vec<String> = project::list_for_user(&conn, fx.alice).into_iter().map(|p| p.name).collect();
+    assert_eq!(names, ["Alpha", "digiHub", "iNUX mbB", "Website", "Zöllkau"]);
+}

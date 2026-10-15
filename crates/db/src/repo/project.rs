@@ -15,7 +15,7 @@ const SELECT_COLS: &str = "id, name, description, created_by, created_at";
 
 pub fn list_all(conn: &Connection) -> Vec<Project> {
     let mut stmt = conn
-        .prepare(&format!("SELECT {SELECT_COLS} FROM projects ORDER BY name"))
+        .prepare(&format!("SELECT {SELECT_COLS} FROM projects ORDER BY name COLLATE NOCASE"))
         .unwrap();
     stmt.query_map([], row_to_project)
         .unwrap()
@@ -28,7 +28,7 @@ pub fn list_for_user(conn: &Connection, user_id: i64) -> Vec<Project> {
         .prepare(&format!(
             "SELECT p.{} FROM projects p
              JOIN project_members pm ON pm.project_id = p.id
-             WHERE pm.user_id = ?1 ORDER BY p.name",
+             WHERE pm.user_id = ?1 ORDER BY p.name COLLATE NOCASE",
             SELECT_COLS.replace(", ", ", p.")
         ))
         .unwrap();
@@ -65,9 +65,23 @@ pub fn update(conn: &Connection, id: i64, name: &str, description: &str) -> rusq
     Ok(())
 }
 
+/// Deletes a project together with its tickets and all dependent rows.
+///
+/// Dependent rows are removed explicitly instead of relying on `ON DELETE CASCADE`,
+/// because foreign-key enforcement is a per-connection SQLite setting and is not
+/// guaranteed to be enabled on every pooled connection.
 pub fn delete(conn: &Connection, id: i64) -> rusqlite::Result<()> {
-    conn.execute("DELETE FROM projects WHERE id = ?1", [id])?;
-    Ok(())
+    let tx = conn.unchecked_transaction()?;
+    tx.execute(
+        "DELETE FROM ticket_field_values WHERE ticket_id IN (SELECT id FROM tickets WHERE project_id = ?1)",
+        [id],
+    )?;
+    tx.execute("DELETE FROM tickets WHERE project_id = ?1", [id])?;
+    tx.execute("DELETE FROM project_members WHERE project_id = ?1", [id])?;
+    tx.execute("DELETE FROM project_statuses WHERE project_id = ?1", [id])?;
+    tx.execute("DELETE FROM project_ticket_types WHERE project_id = ?1", [id])?;
+    tx.execute("DELETE FROM projects WHERE id = ?1", [id])?;
+    tx.commit()
 }
 
 pub fn get_member_role(conn: &Connection, project_id: i64, user_id: i64) -> Option<String> {
@@ -105,7 +119,7 @@ pub fn list_members(conn: &Connection, project_id: i64) -> Vec<ProjectMember> {
         .prepare(
             "SELECT pm.user_id, u.username, pm.role FROM project_members pm
              JOIN users u ON u.id = pm.user_id
-             WHERE pm.project_id = ?1 ORDER BY u.username",
+             WHERE pm.project_id = ?1 ORDER BY u.username COLLATE NOCASE",
         )
         .unwrap();
     stmt.query_map([project_id], |row| {

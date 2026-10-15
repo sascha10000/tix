@@ -36,7 +36,7 @@ pub fn find_by_id(conn: &Connection, id: i64) -> Option<User> {
 
 pub fn list_all(conn: &Connection) -> Vec<User> {
     let mut stmt = conn
-        .prepare(&format!("SELECT {SELECT_COLS} FROM users ORDER BY username"))
+        .prepare(&format!("SELECT {SELECT_COLS} FROM users ORDER BY username COLLATE NOCASE"))
         .unwrap();
     stmt.query_map([], row_to_user)
         .unwrap()

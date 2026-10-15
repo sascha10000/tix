@@ -26,6 +26,13 @@
             <td>{{ p.description }}</td>
             <td>
                 <a href="/projects/{{ p.id }}" class="btn btn-sm">{{ t.common.settings }}</a>
+                {% if p.can_delete %}
+                <form method="post" action="/projects/{{ p.id }}/delete" style="display:inline" onsubmit="return confirm('{{ t.projects.delete_confirm }}')">
+                    <button type="submit" class="btn btn-sm btn-danger btn-icon" title="{{ t.projects.delete_project }}" aria-label="{{ t.projects.delete_project }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6M10 11v6M14 11v6"/></svg>
+                    </button>
+                </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}

@@ -22,6 +22,7 @@ struct ProjectView {
     id: i64,
     name: String,
     description: String,
+    can_delete: bool,
 }
 
 #[derive(Template)]
@@ -124,6 +125,7 @@ pub async fn list(
     let projects: Vec<ProjectView> = projects_raw
         .into_iter()
         .map(|p| ProjectView {
+            can_delete: can_delete_project(&conn, &auth_user, p.id),
             id: p.id,
             name: p.name,
             description: p.description,
@@ -229,6 +231,7 @@ pub async fn detail(
             id: p.id,
             name: p.name,
             description: p.description,
+            can_delete,
         },
         members,
         all_users,
@@ -252,9 +255,11 @@ pub async fn edit_page(
         return Err(AppError::Forbidden);
     }
     let p = project::find_by_id(&conn, id).ok_or(AppError::NotFound("Project not found".into()))?;
+    let can_delete = can_delete_project(&conn, &auth_user, p.id);
     Ok(ProjectFormTemplate {
         user: auth_user,
         edit: Some(ProjectView {
+            can_delete,
             id: p.id,
             name: p.name,
             description: p.description,
