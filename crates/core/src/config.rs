@@ -16,6 +16,20 @@ pub struct Config {
     /// PEM certificate chain and private key. HTTPS is served only when both are set.
     pub tls_cert_file: Option<String>,
     pub tls_key_file: Option<String>,
+    /// Outgoing e-mail; `None` when `SMTP_HOST` is not set (e-mail notifications disabled).
+    pub smtp: Option<SmtpConfig>,
+    /// Language code for notification e-mails (`MAIL_LANG`), e.g. "de".
+    pub mail_lang: Option<String>,
+}
+
+pub struct SmtpConfig {
+    pub host: String,
+    pub port: Option<u16>,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub from: String,
+    /// "starttls" (default), "tls" (implicit TLS, usually port 465) or "none" (plain, local relays only).
+    pub security: String,
 }
 
 impl Config {
@@ -32,6 +46,17 @@ impl Config {
                 .unwrap_or_else(|_| format!("{scheme}://{bind_address}")),
             tls_cert_file,
             tls_key_file,
+            smtp: non_empty("SMTP_HOST").map(|host| SmtpConfig {
+                port: non_empty("SMTP_PORT").and_then(|p| p.parse().ok()),
+                username: non_empty("SMTP_USERNAME"),
+                password: non_empty("SMTP_PASSWORD"),
+                from: non_empty("SMTP_FROM").unwrap_or_else(|| format!("ticketsystem@{host}")),
+                security: non_empty("SMTP_SECURITY")
+                    .map(|s| s.to_lowercase())
+                    .unwrap_or_else(|| "starttls".into()),
+                host,
+            }),
+            mail_lang: non_empty("MAIL_LANG"),
             oauth_access_token_minutes: env::var("OAUTH_ACCESS_TOKEN_MINUTES")
                 .ok()
                 .and_then(|s| s.parse().ok())

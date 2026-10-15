@@ -7,4 +7,5 @@ pub struct User {
     pub is_manager: bool,
     pub created_at: String,
     pub is_active: bool,
+    pub email_notifications: bool,
 }

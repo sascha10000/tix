@@ -34,3 +34,7 @@ url = "2"
 # `ring` instead of the default aws-lc-rs backend: no CMake/C toolchain
 # requirements, so the musl and Windows release builds stay simple.
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"], optional = true }
+# SMTP for notification e-mails: rustls with ring + bundled Mozilla roots (works in the
+# static musl build without system certificates). No connection pool: actix runs one
+# Tokio runtime per worker, and pooled sockets must not cross runtimes.
+lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "hostname", "tokio1-rustls-tls"] }

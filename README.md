@@ -11,6 +11,7 @@ A self-hosted, lightweight ticket management system built with Rust. It uses ser
 - Custom fields can be marked as required per ticket type
 - Status transitions governed by a configurable workflow matrix
 - Statuses can be marked as **closed** (e.g. "Done"); open tickets past their due date are highlighted as **overdue**
+- Notifications when a ticket is created for or assigned to you: e-mail (optional, via SMTP, opt-out in the profile) and desktop notifications in the browser (enable on the profile page; requires HTTPS)
 - Filter the dashboard and project ticket lists by project, status, assignee, type, text, "only open" and "only overdue" (filters live in the URL, so views can be bookmarked)
 
 ### Projects
@@ -121,6 +122,12 @@ Available environment variables:
 | `OAUTH_REFRESH_TOKEN_DAYS` | `30` | Lifetime of MCP refresh tokens (rotated on every use) |
 | `TLS_CERT_FILE` | *(unset)* | PEM certificate chain. HTTPS is served only when this and `TLS_KEY_FILE` are set |
 | `TLS_KEY_FILE` | *(unset)* | PEM private key (PKCS#8, PKCS#1 or SEC1) |
+| `SMTP_HOST` | *(unset)* | SMTP server for notification e-mails; e-mail is disabled when unset |
+| `SMTP_PORT` | per mode | SMTP port (default 587 for `starttls`, 465 for `tls`, 25 for `none`) |
+| `SMTP_SECURITY` | `starttls` | `starttls`, `tls` (implicit TLS) or `none` (plain, local relays only) |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | *(unset)* | SMTP login, if the server requires one |
+| `SMTP_FROM` | `ticketsystem@{SMTP_HOST}` | Sender, e.g. `Ticketsystem <tickets@example.com>` |
+| `MAIL_LANG` | first compiled-in language | Language of notification e-mails (`en`, `de`, `es`) |
 
 ### Build and Run
 

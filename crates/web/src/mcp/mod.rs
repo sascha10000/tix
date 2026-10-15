@@ -10,6 +10,8 @@ use serde_json::{json, Value};
 
 use ticketsystem_db::DbPool;
 
+use crate::notify::Notifier;
+
 pub use auth::McpUser;
 
 /// Newest protocol revision we implement; older ones are accepted on request.
@@ -61,7 +63,12 @@ fn rpc_response(id: Value, outcome: Result<Value, RpcError>) -> HttpResponse {
     HttpResponse::Ok().json(body)
 }
 
-async fn handle(user: McpUser, pool: web::Data<DbPool>, body: web::Bytes) -> HttpResponse {
+async fn handle(
+    user: McpUser,
+    pool: web::Data<DbPool>,
+    notifier: web::Data<Notifier>,
+    body: web::Bytes,
+) -> HttpResponse {
     let Ok(msg) = serde_json::from_slice::<Value>(&body) else {
         return rpc_response(Value::Null, Err(RpcError { code: -32700, message: "Parse error".into() }));
     };
@@ -90,7 +97,7 @@ async fn handle(user: McpUser, pool: web::Data<DbPool>, body: web::Bytes) -> Htt
         "ping" => Ok(json!({})),
         "tools/list" => Ok(json!({ "tools": tools::definitions() })),
         "tools/call" => match pool.get() {
-            Ok(conn) => tools::call(&conn, &user, &params),
+            Ok(conn) => tools::call(&conn, &user, &params, &notifier),
             Err(e) => Err(RpcError { code: -32603, message: format!("Database unavailable: {e}") }),
         },
         _ => Err(RpcError { code: -32601, message: format!("Method not found: {method}") }),

@@ -25,6 +25,55 @@
     <label>{{ t.profile.new_password }} <input type="password" name="new_password" required minlength="4"></label>
     <button type="submit" class="btn btn-primary">{{ t.profile.change_password_btn }}</button>
 </form>
+<h2>{{ t.notifications.settings_title }}</h2>
+<form method="post" action="/profile/notifications">
+    <label>
+        <input type="checkbox" name="email_notifications" {% if notify_settings.email_enabled %}checked{% endif %}{% if !notify_settings.mail_configured %} disabled{% endif %}>
+        {{ t.notifications.email_label }}
+    </label>
+    {% if notify_settings.mail_configured %}
+    <button type="submit" class="btn btn-primary">{{ t.common.save }}</button>
+    {% else %}
+    <p>{{ t.notifications.email_not_configured }}</p>
+    {% endif %}
+</form>
+
+<p>{{ t.notifications.desktop_label }}:
+    <button type="button" class="btn btn-sm" id="desktop-notify-enable" hidden>{{ t.notifications.desktop_enable }}</button>
+    <span id="desktop-notify-status"
+          data-enabled="{{ t.notifications.desktop_enabled }}"
+          data-blocked="{{ t.notifications.desktop_blocked }}"
+          data-unsupported="{{ t.notifications.desktop_unsupported }}"></span>
+</p>
+<script>
+(function () {
+    var button = document.getElementById("desktop-notify-enable");
+    var status = document.getElementById("desktop-notify-status");
+    function render() {
+        if (!("Notification" in window) || !window.isSecureContext) {
+            status.textContent = status.dataset.unsupported;
+        } else if (Notification.permission === "granted") {
+            status.textContent = status.dataset.enabled;
+        } else if (Notification.permission === "denied") {
+            status.textContent = status.dataset.blocked;
+        } else {
+            button.hidden = false;
+            return;
+        }
+        button.hidden = true;
+    }
+    button.addEventListener("click", function () {
+        Notification.requestPermission().then(function () {
+            render();
+            if (Notification.permission === "granted" && window.ticketNotifications) {
+                window.ticketNotifications.start();
+            }
+        });
+    });
+    render();
+})();
+</script>
+
 <h2>{{ t.oauth.connected_apps }}</h2>
 {% if connections.is_empty() %}
 <p>{{ t.oauth.no_connected_apps }}</p>

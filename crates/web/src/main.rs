@@ -4,6 +4,7 @@ mod errors;
 mod handlers;
 mod mcp;
 mod middleware;
+mod notify;
 mod oauth;
 mod ticket_filter;
 #[cfg(feature = "tls")]
@@ -143,12 +144,20 @@ async fn main() -> std::io::Result<()> {
     };
     println!("MCP endpoint at {}", oauth_settings.resource_url());
 
+    let notifier = notify::Notifier::new(config.smtp.as_ref(), config.mail_lang.as_deref(), &config.public_base_url)
+        .map_err(|e| std::io::Error::other(format!("E-mail setup failed: {e}")))?;
+    let notifier = web::Data::new(notifier);
+    if let Some(smtp) = &config.smtp {
+        println!("E-mail notifications via {} ({})", smtp.host, smtp.security);
+    }
+
     let server = HttpServer::new(move || {
         App::new()
             .wrap(actix_web::middleware::from_fn(cors::cors))
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(session_hours))
             .app_data(web::Data::new(oauth_settings.clone()))
+            .app_data(notifier.clone())
             // MCP server and its OAuth 2.1 authorization server
             .configure(oauth::routes)
             .configure(mcp::routes)
@@ -166,6 +175,8 @@ async fn main() -> std::io::Result<()> {
             .route("/profile", web::post().to(handlers::profile::update))
             .route("/profile/password", web::post().to(handlers::profile::change_password))
             .route("/profile/connections/{client_id}/revoke", web::post().to(handlers::profile::revoke_connection))
+            .route("/profile/notifications", web::post().to(handlers::profile::update_notifications))
+            .route("/notifications", web::get().to(handlers::notifications::poll))
             // Dashboard
             .route("/", web::get().to(handlers::dashboard::index))
             // Admin (feature-gated)

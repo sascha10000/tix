@@ -15,6 +15,7 @@ pub struct Translations {
     pub profile: Profile,
     pub oauth: OAuth,
     pub filters: Filters,
+    pub notifications: Notifications,
     pub projects: Projects,
     pub tickets: Tickets,
     pub admin: Admin,
@@ -95,6 +96,29 @@ pub struct Profile {
     pub current_password: &'static str,
     pub new_password: &'static str,
     pub change_password_btn: &'static str,
+}
+
+/// Notification e-mails, browser notifications and the profile settings for them.
+/// `{actor}`, `{title}`, `{project}` and `{due}` are replaced at send time.
+pub struct Notifications {
+    pub settings_title: &'static str,
+    pub email_label: &'static str,
+    pub email_not_configured: &'static str,
+    pub desktop_label: &'static str,
+    pub desktop_enable: &'static str,
+    pub desktop_enabled: &'static str,
+    pub desktop_blocked: &'static str,
+    pub desktop_unsupported: &'static str,
+    pub browser_created: &'static str,
+    pub browser_assigned: &'static str,
+    pub mail_subject_created: &'static str,
+    pub mail_subject_assigned: &'static str,
+    pub mail_intro_created: &'static str,
+    pub mail_intro_assigned: &'static str,
+    pub mail_project: &'static str,
+    pub mail_due: &'static str,
+    pub mail_open: &'static str,
+    pub mail_footer: &'static str,
 }
 
 /// Filter bars on the ticket overviews, and the overdue marker.

@@ -11,10 +11,12 @@ fn row_to_user(row: &rusqlite::Row) -> rusqlite::Result<User> {
         is_manager: row.get::<_, i64>(5)? != 0,
         created_at: row.get(6)?,
         is_active: row.get::<_, i64>(7)? != 0,
+        email_notifications: row.get::<_, i64>(8)? != 0,
     })
 }
 
-const SELECT_COLS: &str = "id, username, email, password_hash, is_admin, is_manager, created_at, is_active";
+const SELECT_COLS: &str =
+    "id, username, email, password_hash, is_admin, is_manager, created_at, is_active, email_notifications";
 
 pub fn find_by_username(conn: &Connection, username: &str) -> Option<User> {
     conn.query_row(
@@ -88,6 +90,14 @@ pub fn set_active(conn: &Connection, id: i64, active: bool) -> rusqlite::Result<
     conn.execute(
         "UPDATE users SET is_active = ?1 WHERE id = ?2",
         params![active as i64, id],
+    )?;
+    Ok(())
+}
+
+pub fn set_email_notifications(conn: &Connection, id: i64, enabled: bool) -> rusqlite::Result<()> {
+    conn.execute(
+        "UPDATE users SET email_notifications = ?1 WHERE id = ?2",
+        params![enabled as i64, id],
     )?;
     Ok(())
 }

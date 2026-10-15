@@ -1,5 +1,5 @@
 /// Total number of migrations. Keep in sync with the migrations vec in run_migrations().
-pub const MIGRATION_COUNT: i64 = 8;
+pub const MIGRATION_COUNT: i64 = 9;
 
 /// Versioned migrations. Each entry runs once, in order.
 /// Add new migrations to the end of the list -- never modify existing ones.
@@ -162,6 +162,21 @@ pub fn run_migrations(conn: &rusqlite::Connection) {
         // Migration 8: Mark statuses as closed (done). Used for "open only" filters and overdue tickets.
         "
         ALTER TABLE statuses ADD COLUMN is_closed INTEGER NOT NULL DEFAULT 0;
+        ",
+        // Migration 9: Notifications about new/assigned tickets (browser + e-mail) and the e-mail opt-out.
+        "
+        ALTER TABLE users ADD COLUMN email_notifications INTEGER NOT NULL DEFAULT 1;
+
+        CREATE TABLE notifications (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id    INTEGER NOT NULL REFERENCES users(id),
+            ticket_id  INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+            kind       TEXT NOT NULL CHECK (kind IN ('created', 'assigned')),
+            actor_id   INTEGER REFERENCES users(id),
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX idx_notifications_user ON notifications(user_id, id);
         ",
     ];
 

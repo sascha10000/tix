@@ -9,16 +9,34 @@ use ticketsystem_core::i18n::Translations;
 use crate::errors::AppError;
 use crate::middleware::AuthenticatedUser;
 use crate::middleware::Lang;
+use crate::notify::Notifier;
 
 #[derive(Template)]
 #[template(path = "profile.html")]
 struct ProfileTemplate {
     connections: Vec<ConnectionView>,
+    notify_settings: NotificationSettingsView,
     user: AuthenticatedUser,
     profile: ProfileView,
     success: Option<String>,
     error: Option<String>,
     t: &'static Translations,
+}
+
+struct NotificationSettingsView {
+    email_enabled: bool,
+    mail_configured: bool,
+}
+
+fn notification_settings(
+    conn: &ticketsystem_db::rusqlite::Connection,
+    user_id: i64,
+    notifier: &Notifier,
+) -> NotificationSettingsView {
+    NotificationSettingsView {
+        email_enabled: user::find_by_id(conn, user_id).is_some_and(|u| u.email_notifications),
+        mail_configured: notifier.mail_enabled(),
+    }
 }
 
 struct ConnectionView {
@@ -65,6 +83,7 @@ pub struct PasswordForm {
 pub async fn page(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    notifier: web::Data<Notifier>,
     Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
@@ -73,6 +92,7 @@ pub async fn page(
 
     Ok(ProfileTemplate {
         connections: load_connections(&conn, auth_user.id, t),
+        notify_settings: notification_settings(&conn, auth_user.id, &notifier),
         user: auth_user,
         profile: ProfileView {
             username: u.username,
@@ -87,6 +107,7 @@ pub async fn page(
 pub async fn update(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    notifier: web::Data<Notifier>,
     form: web::Form<ProfileForm>,
     Lang(t): Lang,
 ) -> Result<HttpResponse, AppError> {
@@ -96,6 +117,7 @@ pub async fn update(
         Ok(_) => {
             let tmpl = ProfileTemplate {
                 connections: load_connections(&conn, auth_user.id, t),
+                notify_settings: notification_settings(&conn, auth_user.id, &notifier),
                 user: auth_user,
                 profile: ProfileView {
                     username: form.username.clone(),
@@ -112,6 +134,7 @@ pub async fn update(
         Err(e) => {
             let tmpl = ProfileTemplate {
                 connections: load_connections(&conn, auth_user.id, t),
+                notify_settings: notification_settings(&conn, auth_user.id, &notifier),
                 user: auth_user,
                 profile: ProfileView {
                     username: form.username.clone(),
@@ -131,6 +154,7 @@ pub async fn update(
 pub async fn change_password(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    notifier: web::Data<Notifier>,
     form: web::Form<PasswordForm>,
     Lang(t): Lang,
 ) -> Result<HttpResponse, AppError> {
@@ -141,6 +165,7 @@ pub async fn change_password(
     if !ticketsystem_auth::verify_password(&form.current_password, &u.password_hash) {
         let tmpl = ProfileTemplate {
             connections: load_connections(&conn, auth_user.id, t),
+            notify_settings: notification_settings(&conn, auth_user.id, &notifier),
             user: auth_user,
             profile: ProfileView {
                 username: u.username,
@@ -161,6 +186,7 @@ pub async fn change_password(
 
     let tmpl = ProfileTemplate {
         connections: load_connections(&conn, auth_user.id, t),
+        notify_settings: notification_settings(&conn, auth_user.id, &notifier),
         user: auth_user,
         profile: ProfileView {
             username: u.username,
@@ -183,6 +209,24 @@ pub async fn revoke_connection(
 ) -> Result<HttpResponse, AppError> {
     let conn = pool.get()?;
     oauth::delete_tokens_for(&conn, auth_user.id, &path.into_inner())?;
+    Ok(HttpResponse::SeeOther()
+        .insert_header(("Location", "/profile"))
+        .finish())
+}
+
+#[derive(Deserialize)]
+pub struct NotificationSettingsForm {
+    /// HTML checkbox: present when ticked.
+    email_notifications: Option<String>,
+}
+
+pub async fn update_notifications(
+    auth_user: AuthenticatedUser,
+    pool: web::Data<DbPool>,
+    form: web::Form<NotificationSettingsForm>,
+) -> Result<HttpResponse, AppError> {
+    let conn = pool.get()?;
+    user::set_email_notifications(&conn, auth_user.id, form.email_notifications.is_some())?;
     Ok(HttpResponse::SeeOther()
         .insert_header(("Location", "/profile"))
         .finish())

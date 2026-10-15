@@ -19,6 +19,7 @@ use super::{McpUser, RpcError};
 use crate::access::{can_edit_ticket, can_transition_ticket, check_project_access};
 use crate::errors::AppError;
 use crate::middleware::AuthenticatedUser;
+use crate::notify::{Kind, Notifier};
 use crate::oauth::{SCOPE_READ, SCOPE_WRITE};
 use crate::ticket_filter::{self, TicketFilter};
 
@@ -77,7 +78,7 @@ fn tool_result(outcome: ToolResult) -> Value {
     }
 }
 
-pub fn call(conn: &Connection, mcp_user: &McpUser, params: &Value) -> Result<Value, RpcError> {
+pub fn call(conn: &Connection, mcp_user: &McpUser, params: &Value, notifier: &Notifier) -> Result<Value, RpcError> {
     let name = params
         .get("name")
         .and_then(Value::as_str)
@@ -102,8 +103,8 @@ pub fn call(conn: &Connection, mcp_user: &McpUser, params: &Value) -> Result<Val
         "list_tickets" => parse_args(args).and_then(|a| list_tickets(conn, user, a)),
         "get_ticket" => parse_args(args).and_then(|a: TicketIdArgs| ticket_detail(conn, user, a.ticket_id)),
         "list_my_tickets" => parse_args(args).and_then(|a| list_my_tickets(conn, user, a)),
-        "create_ticket" => parse_args(args).and_then(|a| create_ticket(conn, user, a)),
-        "update_ticket" => parse_args(args).and_then(|a| update_ticket(conn, user, a)),
+        "create_ticket" => parse_args(args).and_then(|a| create_ticket(conn, user, a, notifier)),
+        "update_ticket" => parse_args(args).and_then(|a| update_ticket(conn, user, a, notifier)),
         "transition_ticket" => parse_args(args).and_then(|a| transition_ticket(conn, user, a)),
         _ => unreachable!("tool names are matched above"),
     };
@@ -672,7 +673,7 @@ struct CreateTicketArgs {
     fields: Map<String, Value>,
 }
 
-fn create_ticket(conn: &Connection, user: &AuthenticatedUser, args: CreateTicketArgs) -> ToolResult {
+fn create_ticket(conn: &Connection, user: &AuthenticatedUser, args: CreateTicketArgs, notifier: &Notifier) -> ToolResult {
     let p = check_project_access(conn, user, args.project_id)?;
     let title = validate_title(&args.title)?;
     let due_date = validate_date("due_date", &args.due_date)?;
@@ -718,6 +719,7 @@ fn create_ticket(conn: &Connection, user: &AuthenticatedUser, args: CreateTicket
         ticket::set_field_value(&tx, ticket_id, *field_id, value)?;
     }
     tx.commit()?;
+    notifier.ticket_assigned(conn, ticket_id, assignee_id, user.id, Kind::Created);
 
     ticket_detail(conn, user, ticket_id)
 }
@@ -733,7 +735,7 @@ struct UpdateTicketArgs {
     fields: Map<String, Value>,
 }
 
-fn update_ticket(conn: &Connection, user: &AuthenticatedUser, args: UpdateTicketArgs) -> ToolResult {
+fn update_ticket(conn: &Connection, user: &AuthenticatedUser, args: UpdateTicketArgs, notifier: &Notifier) -> ToolResult {
     let (t, p) = load_ticket(conn, user, args.ticket_id)?;
     let role = project::get_member_role(conn, p.id, user.id);
     if !can_edit_ticket(user, role.as_deref(), t.creator_id) {
@@ -775,6 +777,9 @@ fn update_ticket(conn: &Connection, user: &AuthenticatedUser, args: UpdateTicket
         ticket::set_field_value(&tx, t.id, *field_id, value)?;
     }
     tx.commit()?;
+    if assignee_id != t.assignee_id {
+        notifier.ticket_assigned(conn, t.id, assignee_id, user.id, Kind::Assigned);
+    }
 
     ticket_detail(conn, user, t.id)
 }

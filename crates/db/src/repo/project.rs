@@ -76,6 +76,10 @@ pub fn delete(conn: &Connection, id: i64) -> rusqlite::Result<()> {
         "DELETE FROM ticket_field_values WHERE ticket_id IN (SELECT id FROM tickets WHERE project_id = ?1)",
         [id],
     )?;
+    tx.execute(
+        "DELETE FROM notifications WHERE ticket_id IN (SELECT id FROM tickets WHERE project_id = ?1)",
+        [id],
+    )?;
     tx.execute("DELETE FROM tickets WHERE project_id = ?1", [id])?;
     tx.execute("DELETE FROM project_members WHERE project_id = ?1", [id])?;
     tx.execute("DELETE FROM project_statuses WHERE project_id = ?1", [id])?;

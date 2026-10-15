@@ -10,6 +10,7 @@ use ticketsystem_core::i18n::Translations;
 use crate::access::{can_edit_ticket, can_transition_ticket, check_project_access};
 use crate::errors::AppError;
 use crate::middleware::{AuthenticatedUser, Lang};
+use crate::notify::{Kind, Notifier};
 use crate::ticket_filter::{self, FilterQuery, SelectOption as FilterOption};
 
 #[derive(Template)]
@@ -327,6 +328,7 @@ pub async fn new_page(
 pub async fn create(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    notifier: web::Data<Notifier>,
     path: web::Path<i64>,
     form: web::Form<HashMap<String, String>>,
 ) -> Result<HttpResponse, AppError> {
@@ -375,6 +377,8 @@ pub async fn create(
             ticket::set_field_value(&conn, ticket_id, field.id, value)?;
         }
     }
+
+    notifier.ticket_assigned(&conn, ticket_id, assignee_id, auth_user.id, Kind::Created);
 
     Ok(HttpResponse::SeeOther()
         .insert_header(("Location", format!("/projects/{project_id}/tickets/{ticket_id}")))
@@ -550,6 +554,7 @@ pub async fn edit_page(
 pub async fn edit_submit(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
+    notifier: web::Data<Notifier>,
     path: web::Path<(i64, i64)>,
     form: web::Form<HashMap<String, String>>,
 ) -> Result<HttpResponse, AppError> {
@@ -586,6 +591,10 @@ pub async fn edit_submit(
         if let Some(value) = params.get(&key) {
             ticket::set_field_value(&conn, ticket_id, field.id, value)?;
         }
+    }
+
+    if assignee_id != t.assignee_id {
+        notifier.ticket_assigned(&conn, ticket_id, assignee_id, auth_user.id, Kind::Assigned);
     }
 
     Ok(HttpResponse::SeeOther()

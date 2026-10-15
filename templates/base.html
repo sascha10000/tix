@@ -38,5 +38,48 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+    <div id="notify-texts" hidden
+         data-created="{{ t.notifications.browser_created }}"
+         data-assigned="{{ t.notifications.browser_assigned }}"></div>
+    <script>
+    // Desktop notifications for tickets created for / assigned to the current user.
+    // Only active after the user granted permission (button on the profile page).
+    window.ticketNotifications = (function () {
+        var KEY = "notifyLastId", INTERVAL_MS = 60000, timer = null;
+        var texts = document.getElementById("notify-texts").dataset;
+        function poll() {
+            var after = null;
+            try { after = localStorage.getItem(KEY); } catch (e) {}
+            var url = "/notifications" + (after ? "?after=" + encodeURIComponent(after) : "");
+            fetch(url, { credentials: "same-origin", headers: { "Accept": "application/json" } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (!data) return;
+                    if (after) {
+                        data.items.forEach(function (n) {
+                            var title = n.kind === "assigned" ? texts.assigned : texts.created;
+                            var note = new Notification(title, {
+                                body: n.title + " \u2014 " + n.project + (n.actor ? " (" + n.actor + ")" : ""),
+                                tag: "ticket-" + n.ticket_id
+                            });
+                            note.onclick = function () {
+                                window.focus();
+                                location.href = "/projects/" + n.project_id + "/tickets/" + n.ticket_id;
+                            };
+                        });
+                    }
+                    try { localStorage.setItem(KEY, String(data.latest_id)); } catch (e) {}
+                })
+                .catch(function () {});
+        }
+        function start() {
+            if (timer || !("Notification" in window) || Notification.permission !== "granted") return;
+            poll();
+            timer = setInterval(poll, INTERVAL_MS);
+        }
+        start();
+        return { start: start };
+    })();
+    </script>
 </body>
 </html>

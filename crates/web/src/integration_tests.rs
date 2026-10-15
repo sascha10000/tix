@@ -78,6 +78,9 @@ macro_rules! app {
                 .wrap(actix_web::middleware::from_fn(cors::cors))
                 .app_data(web::Data::new($fx.pool.clone()))
                 .app_data(web::Data::new(settings()))
+                .app_data(web::Data::new(
+                    crate::notify::Notifier::new(None, None, "http://localhost:8080").unwrap(),
+                ))
                 .configure(oauth::routes)
                 .configure(mcp::routes)
                 .route(
@@ -85,6 +88,8 @@ macro_rules! app {
                     web::post().to(handlers::profile::revoke_connection),
                 )
                 .route("/", web::get().to(handlers::dashboard::index))
+                .route("/notifications", web::get().to(handlers::notifications::poll))
+                .route("/profile/notifications", web::post().to(handlers::profile::update_notifications))
                 .route("/projects/{pid}/tickets", web::get().to(handlers::tickets::list)),
         )
         .await
@@ -520,4 +525,82 @@ async fn overdue_and_open_filters() {
     )
     .unwrap();
     assert!(html.contains("Late and open") && html.contains("Not due yet") && !html.contains("Late but done"));
+}
+
+#[actix_web::test]
+async fn assigning_tickets_creates_notifications() {
+    let fx = fixture();
+    let app = app!(fx);
+    let (alice_token, bob_session) = {
+        let conn = fx.pool.get().unwrap();
+        project::add_member(&conn, fx.project_id, fx.bob, "member").unwrap();
+        oauth_repo::create_client(&conn, "test-client", "test", &[REDIRECT.to_string()]).unwrap();
+        let token = "alice-write-token";
+        oauth_repo::create_token(
+            &conn, &ticketsystem_auth::hash_token(token), "access", "test-client", fx.alice, "tickets:read tickets:write", 60,
+        )
+        .unwrap();
+        (token, user::create_session(&conn, fx.bob, 1).unwrap())
+    };
+    let poll = |after: Option<i64>| {
+        let uri = match after {
+            Some(a) => format!("/notifications?after={a}"),
+            None => "/notifications".to_string(),
+        };
+        test::TestRequest::get().uri(&uri).cookie(Cookie::new("session_id", bob_session.clone())).to_request()
+    };
+
+    // Baseline: nothing yet, and no history replay without `after`.
+    let body: Value = test::read_body_json(test::call_service(&app, poll(None)).await).await;
+    assert_eq!(body["latest_id"], 0);
+
+    // Alice creates a ticket for herself: no notification for anyone.
+    let r = tool!(app, alice_token, "create_ticket", json!({
+        "project_id": fx.project_id, "title": "For me", "ticket_type_id": fx.bug_type_id, "due_date": "2026-11-01", "fields": { "Severity": 1 }
+    }));
+    let own_ticket = r["structuredContent"]["ticket"]["id"].as_i64().unwrap();
+    let body: Value = test::read_body_json(test::call_service(&app, poll(Some(0))).await).await;
+    assert_eq!(body["items"], json!([]));
+
+    // Alice creates a ticket for Bob: Bob is notified ("created").
+    let r = tool!(app, alice_token, "create_ticket", json!({
+        "project_id": fx.project_id, "title": "For Bob", "ticket_type_id": fx.bug_type_id, "due_date": "2026-11-01",
+        "assignee_id": fx.bob, "fields": { "Severity": 2 }
+    }));
+    assert_eq!(r["isError"], false, "{r}");
+    let body: Value = test::read_body_json(test::call_service(&app, poll(Some(0))).await).await;
+    let items = body["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["title"], "For Bob");
+    assert_eq!(items[0]["kind"], "created");
+    assert_eq!(items[0]["actor"], "alice");
+    let first_id = items[0]["id"].as_i64().unwrap();
+
+    // Reassigning Alice's own ticket to Bob: "assigned". Unchanged assignee: nothing new.
+    for args in [
+        json!({ "ticket_id": own_ticket, "assignee_id": fx.bob }),
+        json!({ "ticket_id": own_ticket, "title": "For me, now Bob" }),
+    ] {
+        let r = tool!(app, alice_token, "update_ticket", args);
+        assert_eq!(r["isError"], false, "{r}");
+    }
+    let body: Value = test::read_body_json(test::call_service(&app, poll(Some(first_id))).await).await;
+    let items = body["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1, "{body}");
+    assert_eq!(items[0]["kind"], "assigned");
+    assert_eq!(body["latest_id"], items[0]["id"]);
+
+    // E-mail opt-out is stored (checkbox absent = off).
+    let resp = test::call_service(
+        &app,
+        test::TestRequest::post()
+            .uri("/profile/notifications")
+            .cookie(Cookie::new("session_id", bob_session.clone()))
+            .set_form([("dummy", "")])
+            .to_request(),
+    )
+    .await;
+    assert_eq!(resp.status(), StatusCode::SEE_OTHER);
+    let conn = fx.pool.get().unwrap();
+    assert!(!user::find_by_id(&conn, fx.bob).unwrap().email_notifications);
 }

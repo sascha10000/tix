@@ -1,3 +1,4 @@
+pub mod notification;
 pub mod oauth;
 pub mod project;
 pub mod status;

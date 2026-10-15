@@ -1,5 +1,5 @@
 /// Current schema version. Must match the number of migrations in migrations.rs.
-const SCHEMA_VERSION: i64 = 8;
+const SCHEMA_VERSION: i64 = 9;
 
 /// Initial schema -- runs only when tables don't exist yet.
 /// This reflects the LATEST schema (post all migrations).
@@ -28,7 +28,8 @@ pub(crate) fn create_schema(conn: &rusqlite::Connection) {
             is_admin      INTEGER NOT NULL DEFAULT 0,
             is_manager    INTEGER NOT NULL DEFAULT 0,
             created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-            is_active     INTEGER NOT NULL DEFAULT 1
+            is_active     INTEGER NOT NULL DEFAULT 1,
+            email_notifications INTEGER NOT NULL DEFAULT 1
         );
 
         CREATE TABLE sessions (
@@ -154,6 +155,17 @@ pub(crate) fn create_schema(conn: &rusqlite::Connection) {
         );
 
         CREATE INDEX idx_oauth_tokens_user ON oauth_tokens(user_id, client_id);
+
+        CREATE TABLE notifications (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id    INTEGER NOT NULL REFERENCES users(id),
+            ticket_id  INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+            kind       TEXT NOT NULL CHECK (kind IN ('created', 'assigned')),
+            actor_id   INTEGER REFERENCES users(id),
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX idx_notifications_user ON notifications(user_id, id);
         ",
     )
     .expect("Failed to create schema");
