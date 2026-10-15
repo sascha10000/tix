@@ -117,6 +117,8 @@ Available environment variables:
 | `PUBLIC_BASE_URL` | `http://{BIND_ADDRESS}` | Externally reachable URL (OAuth issuer / MCP resource). Set this behind a reverse proxy |
 | `OAUTH_ACCESS_TOKEN_MINUTES` | `60` | Lifetime of MCP access tokens |
 | `OAUTH_REFRESH_TOKEN_DAYS` | `30` | Lifetime of MCP refresh tokens (rotated on every use) |
+| `TLS_CERT_FILE` | *(unset)* | PEM certificate chain. HTTPS is served only when this and `TLS_KEY_FILE` are set |
+| `TLS_KEY_FILE` | *(unset)* | PEM private key (PKCS#8, PKCS#1 or SEC1) |
 
 ### Build and Run
 
@@ -128,6 +130,20 @@ cargo build --release
 The server starts at the configured bind address (default: `http://127.0.0.1:8080`).
 
 On first launch, the database and schema are created automatically and an admin user is seeded with the configured credentials.
+
+### HTTPS (optional)
+
+The server speaks plain HTTP by default, which is fine behind a TLS-terminating reverse proxy. To serve HTTPS directly, point `TLS_CERT_FILE` and `TLS_KEY_FILE` at PEM files:
+
+```sh
+TLS_CERT_FILE=/etc/ticketsystem/fullchain.pem
+TLS_KEY_FILE=/etc/ticketsystem/privkey.pem
+PUBLIC_BASE_URL=https://tickets.example.com:8080   # defaults to https://{BIND_ADDRESS} when TLS is on
+```
+
+MCP clients such as Claude Code require HTTPS for the OAuth token endpoint on any host other than `localhost`. So a server reached over a LAN or VPN address needs TLS, either natively or through a proxy. With a self-signed certificate or a private CA, make the client trust it, e.g. start Claude Code with `NODE_EXTRA_CA_CERTS=/path/to/ca.pem`.
+
+TLS support can be compiled out with `cargo build --release --no-default-features --features admin,migrations,lang-all`.
 
 ### Database Migrations
 

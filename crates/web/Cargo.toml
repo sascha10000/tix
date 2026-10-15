@@ -8,8 +8,10 @@ name = "ticketsystem"
 path = "src/main.rs"
 
 [features]
-default = ["admin", "migrations", "lang-all"]
+default = ["admin", "migrations", "lang-all", "tls"]
 admin = []
+# Native HTTPS support (enabled at runtime via TLS_CERT_FILE / TLS_KEY_FILE).
+tls = ["dep:rustls", "actix-web/rustls-0_23"]
 lang-all = ["lang-de", "lang-en", "lang-es"]
 migrations = ["ticketsystem-db/migrations"]
 lang-en = ["ticketsystem-core/lang-en"]
@@ -29,3 +31,6 @@ clap = { version = "4", features = ["derive"] }
 dotenvy = "0.15"
 serde_json = "1"
 url = "2"
+# `ring` instead of the default aws-lc-rs backend: no CMake/C toolchain
+# requirements, so the musl and Windows release builds stay simple.
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"], optional = true }

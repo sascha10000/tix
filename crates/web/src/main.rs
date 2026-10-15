@@ -5,6 +5,8 @@ mod handlers;
 mod mcp;
 mod middleware;
 mod oauth;
+#[cfg(feature = "tls")]
+mod tls;
 
 #[cfg(test)]
 mod integration_tests;
@@ -118,7 +120,18 @@ async fn main() -> std::io::Result<()> {
     let pool = ticketsystem_db::pool::init_pool(&config.db_name, config.db_pool_size);
     seed_admin(&pool, &config);
 
-    println!("Starting server at http://{}", config.bind_address);
+    // Optional HTTPS: only when both TLS_CERT_FILE and TLS_KEY_FILE are set.
+    let tls_config = match (&config.tls_cert_file, &config.tls_key_file) {
+        (Some(cert), Some(key)) => Some(load_tls(cert, key)?),
+        (None, None) => None,
+        _ => {
+            return Err(std::io::Error::other(
+                "TLS_CERT_FILE and TLS_KEY_FILE must be set together",
+            ));
+        }
+    };
+    let scheme = if tls_config.is_some() { "https" } else { "http" };
+    println!("Starting server at {scheme}://{}", config.bind_address);
 
     let bind_address = config.bind_address.clone();
     let session_hours = config.session_duration_hours;
@@ -129,7 +142,7 @@ async fn main() -> std::io::Result<()> {
     };
     println!("MCP endpoint at {}", oauth_settings.resource_url());
 
-    HttpServer::new(move || {
+    let server = HttpServer::new(move || {
         App::new()
             .wrap(actix_web::middleware::from_fn(cors::cors))
             .app_data(web::Data::new(pool.clone()))
@@ -177,8 +190,35 @@ async fn main() -> std::io::Result<()> {
             .route("/projects/{pid}/tickets/{id}/edit", web::post().to(handlers::tickets::edit_submit))
             .route("/projects/{pid}/tickets/{id}/transition", web::post().to(handlers::tickets::transition))
             .route("/projects/{pid}/tickets/{id}/delete", web::post().to(handlers::tickets::delete))
-    })
-    .bind(&bind_address)?
-    .run()
-    .await
+    });
+
+    let server = match tls_config {
+        #[cfg(feature = "tls")]
+        Some(tls) => server.bind_rustls_0_23(&bind_address, tls)?,
+        #[cfg(not(feature = "tls"))]
+        Some(never) => match never {},
+        None => server.bind(&bind_address)?,
+    };
+    server.run().await
+}
+
+#[cfg(feature = "tls")]
+type TlsConfig = rustls::ServerConfig;
+/// Without the `tls` feature a TLS config can never be constructed.
+#[cfg(not(feature = "tls"))]
+type TlsConfig = std::convert::Infallible;
+
+fn load_tls(cert_file: &str, key_file: &str) -> std::io::Result<TlsConfig> {
+    #[cfg(feature = "tls")]
+    {
+        tls::load_server_config(cert_file, key_file)
+            .map_err(|e| std::io::Error::other(format!("TLS setup failed: {e}")))
+    }
+    #[cfg(not(feature = "tls"))]
+    {
+        let _ = (cert_file, key_file);
+        Err(std::io::Error::other(
+            "TLS_CERT_FILE/TLS_KEY_FILE are set, but this binary was built without the `tls` feature",
+        ))
+    }
 }
