@@ -3,6 +3,8 @@ pub struct Status {
     pub name: String,
     pub color: String,
     pub position: i64,
+    /// A closed status means the ticket is done (excluded from "open" and overdue).
+    pub is_closed: bool,
 }
 
 pub struct WorkflowTransition {

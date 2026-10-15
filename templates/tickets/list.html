@@ -7,6 +7,42 @@
 <a href="/projects/{{ project_id }}/tickets/new" class="btn btn-primary">{{ t.tickets.new_ticket }}</a>
 <a href="/projects/{{ project_id }}" class="btn">{{ t.tickets.project_settings }}</a>
 
+<form method="get" action="/projects/{{ project_id }}/tickets" class="form-row filter-bar">
+    <div class="form-group">
+        <label for="f-status">{{ t.filters.status }}</label>
+        <select name="status" id="f-status">
+            <option value="">{{ t.filters.all }}</option>
+            {% for o in filter.statuses %}<option value="{{ o.id }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="f-assignee">{{ t.filters.assignee }}</label>
+        <select name="assignee" id="f-assignee">
+            <option value="">{{ t.filters.all }}</option>
+            {% for o in filter.assignees %}<option value="{{ o.id }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="f-type">{{ t.filters.ticket_type }}</label>
+        <select name="type" id="f-type">
+            <option value="">{{ t.filters.all }}</option>
+            {% for o in filter.types %}<option value="{{ o.id }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="f-q">{{ t.filters.search }}</label>
+        <input type="text" name="q" id="f-q" value="{{ filter.search }}">
+    </div>
+    <div class="form-group filter-checks">
+        <label><input type="checkbox" name="open"{% if filter.only_open %} checked{% endif %}>{{ t.filters.only_open }}</label>
+        <label><input type="checkbox" name="overdue"{% if filter.only_overdue %} checked{% endif %}>{{ t.filters.only_overdue }}</label>
+    </div>
+    <div class="form-group filter-actions">
+        <button type="submit" class="btn btn-primary">{{ t.filters.apply }}</button>
+        {% if filter.active %}<a href="/projects/{{ project_id }}/tickets" class="btn">{{ t.filters.reset }}</a>{% endif %}
+    </div>
+</form>
+
 {% if tickets.is_empty() %}
 <p>{{ t.tickets.no_tickets }}</p>
 {% else %}
@@ -25,13 +61,13 @@
     </thead>
     <tbody>
         {% for tk in tickets %}
-        <tr>
+        <tr{% if tk.overdue %} class="overdue"{% endif %}>
             <td>{{ tk.id }}</td>
             <td><a href="/projects/{{ project_id }}/tickets/{{ tk.id }}">{{ tk.title }}</a></td>
             <td>{{ tk.type_name }}</td>
             <td><span class="badge" style="background-color: {{ tk.status_color }}">{{ tk.status_name }}</span></td>
             <td>{{ tk.assignee_name }}</td>
-            <td>{{ tk.due_date }}</td>
+            <td{% if tk.overdue %} class="overdue-date"{% endif %}>{{ tk.due_date }}{% if tk.overdue %} <span class="badge badge-overdue">{{ t.filters.overdue }}</span>{% endif %}</td>
             <td>{{ tk.creator_name }}</td>
             <td>{{ tk.updated_at }}</td>
         </tr>

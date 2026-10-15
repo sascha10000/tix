@@ -16,6 +16,7 @@ pub struct Ticket {
     pub assignee_name: String,
     pub status_name: String,
     pub status_color: String,
+    pub status_closed: bool,
     pub type_name: String,
 }
 

@@ -6,6 +6,35 @@
 <h1>{{ t.dashboard.title }}</h1>
 <p>{{ t.dashboard.welcome }}, {{ user.username }}!</p>
 
+<form method="get" action="/" class="form-row filter-bar">
+    <div class="form-group">
+        <label for="f-project">{{ t.filters.project }}</label>
+        <select name="project" id="f-project">
+            <option value="">{{ t.filters.all }}</option>
+            {% for o in filter.projects %}<option value="{{ o.id }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="f-status">{{ t.filters.status }}</label>
+        <select name="status" id="f-status">
+            <option value="">{{ t.filters.all }}</option>
+            {% for o in filter.statuses %}<option value="{{ o.id }}"{% if o.selected %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="f-q">{{ t.filters.search }}</label>
+        <input type="text" name="q" id="f-q" value="{{ filter.search }}">
+    </div>
+    <div class="form-group filter-checks">
+        <label><input type="checkbox" name="open"{% if filter.only_open %} checked{% endif %}>{{ t.filters.only_open }}</label>
+        <label><input type="checkbox" name="overdue"{% if filter.only_overdue %} checked{% endif %}>{{ t.filters.only_overdue }}</label>
+    </div>
+    <div class="form-group filter-actions">
+        <button type="submit" class="btn btn-primary">{{ t.filters.apply }}</button>
+        {% if filter.active %}<a href="/" class="btn">{{ t.filters.reset }}</a>{% endif %}
+    </div>
+</form>
+
 <h2>{{ t.dashboard.assigned_to_you }}</h2>
 {% if assigned_tickets.is_empty() %}
 <p>{{ t.dashboard.no_assigned }}</p>
@@ -22,11 +51,11 @@
     </thead>
     <tbody>
         {% for tk in assigned_tickets %}
-        <tr>
+        <tr{% if tk.overdue %} class="overdue"{% endif %}>
             <td><a href="/projects/{{ tk.project_id }}/tickets/{{ tk.id }}">{{ tk.title }}</a></td>
             <td><a href="/projects/{{ tk.project_id }}/tickets">{{ tk.project_name }}</a></td>
             <td><span class="badge" style="background-color: {{ tk.status_color }}">{{ tk.status_name }}</span></td>
-            <td>{{ tk.due_date }}</td>
+            <td{% if tk.overdue %} class="overdue-date"{% endif %}>{{ tk.due_date }}{% if tk.overdue %} <span class="badge badge-overdue">{{ t.filters.overdue }}</span>{% endif %}</td>
             <td>{{ tk.updated_at }}</td>
         </tr>
         {% endfor %}
@@ -44,17 +73,19 @@
             <th>{{ t.dashboard.col_title }}</th>
             <th>{{ t.dashboard.col_project }}</th>
             <th>{{ t.dashboard.col_status }}</th>
+            <th>{{ t.dashboard.col_assignee }}</th>
             <th>{{ t.dashboard.col_due_date }}</th>
             <th>{{ t.dashboard.col_updated }}</th>
         </tr>
     </thead>
     <tbody>
         {% for tk in created_tickets %}
-        <tr>
+        <tr{% if tk.overdue %} class="overdue"{% endif %}>
             <td><a href="/projects/{{ tk.project_id }}/tickets/{{ tk.id }}">{{ tk.title }}</a></td>
             <td><a href="/projects/{{ tk.project_id }}/tickets">{{ tk.project_name }}</a></td>
             <td><span class="badge" style="background-color: {{ tk.status_color }}">{{ tk.status_name }}</span></td>
-            <td>{{ tk.due_date }}</td>
+            <td>{{ tk.assignee_name }}</td>
+            <td{% if tk.overdue %} class="overdue-date"{% endif %}>{{ tk.due_date }}{% if tk.overdue %} <span class="badge badge-overdue">{{ t.filters.overdue }}</span>{% endif %}</td>
             <td>{{ tk.updated_at }}</td>
         </tr>
         {% endfor %}

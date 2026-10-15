@@ -3,7 +3,7 @@ use ticketsystem_core::models::status::{Status, WorkflowTransition};
 
 pub fn list_all(conn: &Connection) -> Vec<Status> {
     let mut stmt = conn
-        .prepare("SELECT id, name, color, position FROM statuses ORDER BY position, name")
+        .prepare("SELECT id, name, color, position, is_closed FROM statuses ORDER BY position, name")
         .unwrap();
     stmt.query_map([], |row| {
         Ok(Status {
@@ -11,6 +11,7 @@ pub fn list_all(conn: &Connection) -> Vec<Status> {
             name: row.get(1)?,
             color: row.get(2)?,
             position: row.get(3)?,
+            is_closed: row.get::<_, i64>(4)? != 0,
         })
     })
     .unwrap()
@@ -20,7 +21,7 @@ pub fn list_all(conn: &Connection) -> Vec<Status> {
 
 pub fn find_by_id(conn: &Connection, id: i64) -> Option<Status> {
     conn.query_row(
-        "SELECT id, name, color, position FROM statuses WHERE id = ?1",
+        "SELECT id, name, color, position, is_closed FROM statuses WHERE id = ?1",
         [id],
         |row| {
             Ok(Status {
@@ -28,24 +29,25 @@ pub fn find_by_id(conn: &Connection, id: i64) -> Option<Status> {
                 name: row.get(1)?,
                 color: row.get(2)?,
                 position: row.get(3)?,
+                is_closed: row.get::<_, i64>(4)? != 0,
             })
         },
     )
     .ok()
 }
 
-pub fn create(conn: &Connection, name: &str, color: &str, position: i64) -> rusqlite::Result<i64> {
+pub fn create(conn: &Connection, name: &str, color: &str, position: i64, is_closed: bool) -> rusqlite::Result<i64> {
     conn.execute(
-        "INSERT INTO statuses (name, color, position) VALUES (?1, ?2, ?3)",
-        params![name, color, position],
+        "INSERT INTO statuses (name, color, position, is_closed) VALUES (?1, ?2, ?3, ?4)",
+        params![name, color, position, is_closed as i64],
     )?;
     Ok(conn.last_insert_rowid())
 }
 
-pub fn update(conn: &Connection, id: i64, name: &str, color: &str, position: i64) -> rusqlite::Result<()> {
+pub fn update(conn: &Connection, id: i64, name: &str, color: &str, position: i64, is_closed: bool) -> rusqlite::Result<()> {
     conn.execute(
-        "UPDATE statuses SET name = ?1, color = ?2, position = ?3 WHERE id = ?4",
-        params![name, color, position, id],
+        "UPDATE statuses SET name = ?1, color = ?2, position = ?3, is_closed = ?4 WHERE id = ?5",
+        params![name, color, position, is_closed as i64, id],
     )?;
     Ok(())
 }

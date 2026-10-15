@@ -5,6 +5,7 @@ mod handlers;
 mod mcp;
 mod middleware;
 mod oauth;
+mod ticket_filter;
 #[cfg(feature = "tls")]
 mod tls;
 

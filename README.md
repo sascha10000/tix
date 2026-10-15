@@ -10,6 +10,8 @@ A self-hosted, lightweight ticket management system built with Rust. It uses ser
 - Configurable ticket types with custom fields (text, number, date, textarea, user reference, ticket reference)
 - Custom fields can be marked as required per ticket type
 - Status transitions governed by a configurable workflow matrix
+- Statuses can be marked as **closed** (e.g. "Done"); open tickets past their due date are highlighted as **overdue**
+- Filter the dashboard and project ticket lists by project, status, assignee, type, text, "only open" and "only overdue" (filters live in the URL, so views can be bookmarked)
 
 ### Projects
 - Organize tickets into projects

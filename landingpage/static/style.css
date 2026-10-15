@@ -630,6 +630,43 @@ tr:hover { background: var(--c-surface); }
     -webkit-text-fill-color: var(--c-text) !important;
 }
 
+/* ── Ticket filter bar ── */
+.filter-bar {
+    align-items: flex-end;
+    margin: var(--space-md) 0 var(--space-lg);
+}
+
+.filter-bar .form-group {
+    min-width: 160px;
+}
+
+.filter-bar .filter-checks,
+.filter-bar .filter-actions {
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.filter-bar .filter-checks label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+/* ── Overdue tickets ── */
+tr.overdue td:first-child {
+    box-shadow: inset 3px 0 0 var(--c-danger);
+}
+
+.overdue-date {
+    color: var(--c-danger);
+    font-weight: 600;
+}
+
+.badge-overdue {
+    background-color: var(--c-danger);
+}
+
 /* ── Icon buttons ── */
 .btn-icon {
     display: inline-flex;

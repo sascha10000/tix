@@ -10,7 +10,7 @@
     <span>{{ t.tickets.detail_type }} {{ ticket.type_name }}</span>
     <span>{{ t.tickets.detail_creator }} {{ ticket.creator_name }}</span>
     <span>{{ t.tickets.detail_assignee }} {{ ticket.assignee_name }}</span>
-    <span>{{ t.tickets.detail_due }} {{ ticket.due_date }}</span>
+    <span{% if ticket.overdue %} class="overdue-date"{% endif %}>{{ t.tickets.detail_due }} {{ ticket.due_date }}{% if ticket.overdue %} <span class="badge badge-overdue">{{ t.filters.overdue }}</span>{% endif %}</span>
     <span>{{ t.tickets.detail_created }} {{ ticket.created_at }}</span>
     <span>{{ t.tickets.detail_updated }} {{ ticket.updated_at }}</span>
 </div>

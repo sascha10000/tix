@@ -1,5 +1,5 @@
 /// Total number of migrations. Keep in sync with the migrations vec in run_migrations().
-pub const MIGRATION_COUNT: i64 = 7;
+pub const MIGRATION_COUNT: i64 = 8;
 
 /// Versioned migrations. Each entry runs once, in order.
 /// Add new migrations to the end of the list -- never modify existing ones.
@@ -158,6 +158,10 @@ pub fn run_migrations(conn: &rusqlite::Connection) {
         );
 
         CREATE INDEX idx_oauth_tokens_user ON oauth_tokens(user_id, client_id);
+        ",
+        // Migration 8: Mark statuses as closed (done). Used for "open only" filters and overdue tickets.
+        "
+        ALTER TABLE statuses ADD COLUMN is_closed INTEGER NOT NULL DEFAULT 0;
         ",
     ];
 

@@ -23,6 +23,7 @@ struct StatusView {
     name: String,
     color: String,
     position: i64,
+    is_closed: bool,
 }
 
 #[derive(Template)]
@@ -38,6 +39,8 @@ pub struct StatusForm {
     name: String,
     color: String,
     position: String,
+    /// HTML checkbox: present ("on") when ticked, absent otherwise.
+    is_closed: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -65,6 +68,7 @@ pub async fn list(
             name: s.name.clone(),
             color: s.color.clone(),
             position: s.position,
+            is_closed: s.is_closed,
         })
         .collect();
 
@@ -108,7 +112,7 @@ pub async fn create(
     }
     let conn = pool.get()?;
     let pos: i64 = form.position.parse().unwrap_or(0);
-    status::create(&conn, &form.name, &form.color, pos)?;
+    status::create(&conn, &form.name, &form.color, pos, form.is_closed.is_some())?;
     Ok(HttpResponse::SeeOther()
         .insert_header(("Location", "/admin/statuses"))
         .finish())
@@ -133,6 +137,7 @@ pub async fn edit_page(
             name: s.name,
             color: s.color,
             position: s.position,
+            is_closed: s.is_closed,
         }),
         t,
     })
@@ -150,7 +155,7 @@ pub async fn edit_submit(
     let conn = pool.get()?;
     let id = path.into_inner();
     let pos: i64 = form.position.parse().unwrap_or(0);
-    status::update(&conn, id, &form.name, &form.color, pos)?;
+    status::update(&conn, id, &form.name, &form.color, pos, form.is_closed.is_some())?;
     Ok(HttpResponse::SeeOther()
         .insert_header(("Location", "/admin/statuses"))
         .finish())

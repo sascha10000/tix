@@ -10,6 +10,10 @@
     <label>{{ t.common.name }} <input type="text" name="name" value="{{ s.name }}" required></label>
     <label>{{ t.admin.statuses.color_label }} <input type="color" name="color" value="{{ s.color }}"></label>
     <label>{{ t.common.position }} <input type="number" name="position" value="{{ s.position }}"></label>
+    <label>
+        <input type="checkbox" name="is_closed" {% if s.is_closed %}checked{% endif %}>
+        {{ t.admin.statuses.closed_label }}
+    </label>
     <button type="submit" class="btn btn-primary">{{ t.common.save }}</button>
     <a href="/admin/statuses" class="btn">{{ t.common.cancel }}</a>
 </form>
@@ -18,6 +22,10 @@
     <label>{{ t.common.name }} <input type="text" name="name" required autofocus></label>
     <label>{{ t.admin.statuses.color_label }} <input type="color" name="color" value="#6b7280"></label>
     <label>{{ t.common.position }} <input type="number" name="position" value="0"></label>
+    <label>
+        <input type="checkbox" name="is_closed">
+        {{ t.admin.statuses.closed_label }}
+    </label>
     <button type="submit" class="btn btn-primary">{{ t.common.create }}</button>
     <a href="/admin/statuses" class="btn">{{ t.common.cancel }}</a>
 </form>

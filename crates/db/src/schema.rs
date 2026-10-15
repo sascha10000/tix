@@ -1,5 +1,5 @@
 /// Current schema version. Must match the number of migrations in migrations.rs.
-const SCHEMA_VERSION: i64 = 7;
+const SCHEMA_VERSION: i64 = 8;
 
 /// Initial schema -- runs only when tables don't exist yet.
 /// This reflects the LATEST schema (post all migrations).
@@ -42,7 +42,8 @@ pub(crate) fn create_schema(conn: &rusqlite::Connection) {
             id       INTEGER PRIMARY KEY AUTOINCREMENT,
             name     TEXT NOT NULL UNIQUE,
             color    TEXT NOT NULL DEFAULT '#6b7280',
-            position INTEGER NOT NULL DEFAULT 0
+            position INTEGER NOT NULL DEFAULT 0,
+            is_closed INTEGER NOT NULL DEFAULT 0
         );
 
         CREATE TABLE workflows (

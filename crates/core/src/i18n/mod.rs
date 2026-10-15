@@ -14,6 +14,7 @@ pub struct Translations {
     pub dashboard: Dashboard,
     pub profile: Profile,
     pub oauth: OAuth,
+    pub filters: Filters,
     pub projects: Projects,
     pub tickets: Tickets,
     pub admin: Admin,
@@ -82,7 +83,7 @@ pub struct Dashboard {
     pub col_status: &'static str,
     pub col_due_date: &'static str,
     pub col_updated: &'static str,
-    pub overdue: &'static str,
+    pub col_assignee: &'static str,
 }
 
 pub struct Profile {
@@ -94,6 +95,21 @@ pub struct Profile {
     pub current_password: &'static str,
     pub new_password: &'static str,
     pub change_password_btn: &'static str,
+}
+
+/// Filter bars on the ticket overviews, and the overdue marker.
+pub struct Filters {
+    pub all: &'static str,
+    pub project: &'static str,
+    pub status: &'static str,
+    pub assignee: &'static str,
+    pub ticket_type: &'static str,
+    pub only_open: &'static str,
+    pub only_overdue: &'static str,
+    pub search: &'static str,
+    pub apply: &'static str,
+    pub reset: &'static str,
+    pub overdue: &'static str,
 }
 
 /// OAuth consent page and connected-apps section of the profile.
@@ -216,6 +232,8 @@ pub struct AdminStatuses {
     pub workflow_title: &'static str,
     pub workflow_hint: &'static str,
     pub workflow_from_to: &'static str,
+    pub col_closed: &'static str,
+    pub closed_label: &'static str,
 }
 
 pub struct AdminTicketTypes {

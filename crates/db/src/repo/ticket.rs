@@ -6,7 +6,7 @@ pub fn list_for_project(conn: &Connection, project_id: i64) -> Vec<Ticket> {
         .prepare(
             "SELECT t.id, t.project_id, t.ticket_type_id, t.status_id, t.creator_id,
                     t.assignee_id, t.title, t.text, t.due_date, t.created_at, t.updated_at, t.is_deleted,
-                    u.username, a.username, s.name, s.color, tt.name
+                    u.username, a.username, s.name, s.color, tt.name, s.is_closed
              FROM tickets t
              JOIN users u ON u.id = t.creator_id
              JOIN users a ON a.id = t.assignee_id
@@ -35,6 +35,7 @@ pub fn list_for_project(conn: &Connection, project_id: i64) -> Vec<Ticket> {
             status_name: row.get(14)?,
             status_color: row.get(15)?,
             type_name: row.get(16)?,
+            status_closed: row.get::<_, i64>(17)? != 0,
         })
     })
     .unwrap()
@@ -47,7 +48,7 @@ pub fn list_for_user(conn: &Connection, user_id: i64) -> Vec<(Ticket, String)> {
         .prepare(
             "SELECT t.id, t.project_id, t.ticket_type_id, t.status_id, t.creator_id,
                     t.assignee_id, t.title, t.text, t.due_date, t.created_at, t.updated_at, t.is_deleted,
-                    u.username, a.username, s.name, s.color, tt.name, p.name
+                    u.username, a.username, s.name, s.color, tt.name, p.name, s.is_closed
              FROM tickets t
              JOIN users u ON u.id = t.creator_id
              JOIN users a ON a.id = t.assignee_id
@@ -78,6 +79,7 @@ pub fn list_for_user(conn: &Connection, user_id: i64) -> Vec<(Ticket, String)> {
                 status_name: row.get(14)?,
                 status_color: row.get(15)?,
                 type_name: row.get(16)?,
+                status_closed: row.get::<_, i64>(18)? != 0,
             },
             row.get(17)?,
         ))
@@ -91,7 +93,7 @@ pub fn find_by_id(conn: &Connection, id: i64) -> Option<Ticket> {
     conn.query_row(
         "SELECT t.id, t.project_id, t.ticket_type_id, t.status_id, t.creator_id,
                 t.assignee_id, t.title, t.text, t.due_date, t.created_at, t.updated_at, t.is_deleted,
-                u.username, a.username, s.name, s.color, tt.name
+                u.username, a.username, s.name, s.color, tt.name, s.is_closed
          FROM tickets t
          JOIN users u ON u.id = t.creator_id
          JOIN users a ON a.id = t.assignee_id
@@ -118,6 +120,7 @@ pub fn find_by_id(conn: &Connection, id: i64) -> Option<Ticket> {
                 status_name: row.get(14)?,
                 status_color: row.get(15)?,
                 type_name: row.get(16)?,
+                status_closed: row.get::<_, i64>(17)? != 0,
             })
         },
     )

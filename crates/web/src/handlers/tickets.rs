@@ -10,6 +10,7 @@ use ticketsystem_core::i18n::Translations;
 use crate::access::{can_edit_ticket, can_transition_ticket, check_project_access};
 use crate::errors::AppError;
 use crate::middleware::{AuthenticatedUser, Lang};
+use crate::ticket_filter::{self, FilterQuery, SelectOption as FilterOption};
 
 #[derive(Template)]
 #[template(path = "tickets/list.html")]
@@ -19,6 +20,18 @@ struct TicketsListTemplate {
     project_id: i64,
     project_name: String,
     tickets: Vec<TicketView>,
+    filter: TicketListFilterView,
+}
+
+/// Current filter state, for re-rendering the filter form.
+struct TicketListFilterView {
+    statuses: Vec<FilterOption>,
+    assignees: Vec<FilterOption>,
+    types: Vec<FilterOption>,
+    search: String,
+    only_open: bool,
+    only_overdue: bool,
+    active: bool,
 }
 
 #[allow(dead_code)]
@@ -33,6 +46,7 @@ struct TicketView {
     due_date: String,
     created_at: String,
     updated_at: String,
+    overdue: bool,
 }
 
 #[derive(Template)]
@@ -119,6 +133,7 @@ struct TicketDetailView {
     due_date: String,
     created_at: String,
     updated_at: String,
+    overdue: bool,
 }
 
 struct FieldDisplay {
@@ -162,15 +177,54 @@ pub async fn list(
     auth_user: AuthenticatedUser,
     pool: web::Data<DbPool>,
     path: web::Path<i64>,
+    query: web::Query<FilterQuery>,
     Lang(t): Lang,
 ) -> Result<impl actix_web::Responder, AppError> {
     let conn = pool.get()?;
     let project_id = path.into_inner();
     let p = check_project_access(&conn, &auth_user, project_id)?;
+    let filter = query.to_filter();
+    let today = ticket_filter::today();
+
+    let active_status_ids = project::list_active_status_ids(&conn, project_id);
+    let active_type_ids = project::list_active_ticket_type_ids(&conn, project_id);
+    let filter_view = TicketListFilterView {
+        statuses: FilterOption::list(
+            status::list_all(&conn)
+                .into_iter()
+                .filter(|s| active_status_ids.contains(&s.id))
+                .map(|s| (s.id, s.name)),
+            filter.status_id,
+        ),
+        assignees: FilterOption::list(
+            project::list_members(&conn, project_id)
+                .into_iter()
+                .map(|m| (m.user_id, m.username)),
+            filter.assignee_id,
+        ),
+        types: FilterOption::list(
+            ticket_type::list_all(&conn)
+                .into_iter()
+                .filter(|tt| active_type_ids.contains(&tt.id))
+                .map(|tt| (tt.id, tt.name)),
+            filter.ticket_type_id,
+        ),
+        search: query.search_text(),
+        only_open: filter.only_open,
+        only_overdue: filter.only_overdue,
+        active: filter.status_id.is_some()
+            || filter.assignee_id.is_some()
+            || filter.ticket_type_id.is_some()
+            || filter.query.is_some()
+            || filter.only_open
+            || filter.only_overdue,
+    };
 
     let tickets: Vec<TicketView> = ticket::list_for_project(&conn, project_id)
         .into_iter()
+        .filter(|t| filter.matches(t, today))
         .map(|t| TicketView {
+            overdue: ticket_filter::is_overdue(&t, today),
             id: t.id,
             title: t.title,
             status_name: t.status_name,
@@ -190,6 +244,7 @@ pub async fn list(
         project_id,
         project_name: p.name,
         tickets,
+        filter: filter_view,
     })
 }
 
@@ -393,6 +448,7 @@ pub async fn detail(
         project_id,
         project_name: p.name,
         ticket: TicketDetailView {
+            overdue: ticket_filter::is_overdue(&t, ticket_filter::today()),
             id: t.id,
             title: t.title,
             text: t.text,

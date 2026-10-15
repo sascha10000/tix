@@ -62,7 +62,7 @@ pub static TRANSLATIONS: Translations = Translations {
         col_status: "Status",
         col_due_date: "Due Date",
         col_updated: "Updated",
-        overdue: "overdue",
+        col_assignee: "Assigned to",
     },
     profile: Profile {
         title: "Profile",
@@ -89,6 +89,19 @@ pub static TRANSLATIONS: Translations = Translations {
         col_permissions: "Permissions",
         col_last_authorized: "Last authorized",
         revoke: "Revoke",
+    },
+    filters: Filters {
+        all: "All",
+        project: "Project",
+        status: "Status",
+        assignee: "Assignee",
+        ticket_type: "Type",
+        only_open: "Only open",
+        only_overdue: "Only overdue",
+        search: "Search",
+        apply: "Filter",
+        reset: "Reset",
+        overdue: "overdue",
     },
     projects: Projects {
         title: "Projects",
@@ -184,6 +197,8 @@ pub static TRANSLATIONS: Translations = Translations {
             workflow_title: "Workflow Transitions",
             workflow_hint: "Check a cell to allow transition from row status to column status.",
             workflow_from_to: "From \\ To",
+            col_closed: "Closed",
+            closed_label: "Closed status (tickets in this status count as done)",
         },
         ticket_types: AdminTicketTypes {
             title: "Ticket Types",

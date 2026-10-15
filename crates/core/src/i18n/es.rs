@@ -62,7 +62,7 @@ pub static TRANSLATIONS: Translations = Translations {
         col_status: "Estado",
         col_due_date: "Fecha límite",
         col_updated: "Actualizado",
-        overdue: "vencido",
+        col_assignee: "Asignado a",
     },
     profile: Profile {
         title: "Perfil",
@@ -89,6 +89,19 @@ pub static TRANSLATIONS: Translations = Translations {
         col_permissions: "Permisos",
         col_last_authorized: "\u{00da}ltima autorizaci\u{00f3}n",
         revoke: "Revocar",
+    },
+    filters: Filters {
+        all: "Todos",
+        project: "Proyecto",
+        status: "Estado",
+        assignee: "Asignado",
+        ticket_type: "Tipo",
+        only_open: "Solo abiertos",
+        only_overdue: "Solo vencidos",
+        search: "Buscar",
+        apply: "Filtrar",
+        reset: "Restablecer",
+        overdue: "vencido",
     },
     projects: Projects {
         title: "Proyectos",
@@ -184,6 +197,8 @@ pub static TRANSLATIONS: Translations = Translations {
             workflow_title: "Transiciones de flujo",
             workflow_hint: "Marca una celda para permitir la transici\u{00f3}n del estado de fila al estado de columna.",
             workflow_from_to: "De \\ A",
+            col_closed: "Cerrado",
+            closed_label: "Estado cerrado (los tickets en este estado se consideran terminados)",
         },
         ticket_types: AdminTicketTypes {
             title: "Tipos de ticket",

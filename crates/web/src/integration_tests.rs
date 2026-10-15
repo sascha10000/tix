@@ -48,8 +48,8 @@ fn fixture() -> Fixture {
     let bob = user::create(&conn, "bob", "bob@example.test", "x", false, false).unwrap();
     let project_id = project::create(&conn, "Website", "Public website", alice).unwrap();
 
-    let open_id = status::create(&conn, "Open", "#888888", 1).unwrap();
-    let done_id = status::create(&conn, "Done", "#00aa00", 2).unwrap();
+    let open_id = status::create(&conn, "Open", "#888888", 1, false).unwrap();
+    let done_id = status::create(&conn, "Done", "#00aa00", 2, true).unwrap();
     status::toggle_workflow(&conn, open_id, done_id).unwrap();
     project::toggle_status(&conn, project_id, open_id).unwrap();
     project::toggle_status(&conn, project_id, done_id).unwrap();
@@ -83,7 +83,9 @@ macro_rules! app {
                 .route(
                     "/profile/connections/{client_id}/revoke",
                     web::post().to(handlers::profile::revoke_connection),
-                ),
+                )
+                .route("/", web::get().to(handlers::dashboard::index))
+                .route("/projects/{pid}/tickets", web::get().to(handlers::tickets::list)),
         )
         .await
     };
@@ -461,4 +463,61 @@ async fn projects_are_sorted_case_insensitively() {
     assert_eq!(names, ["Alpha", "digiHub", "iNUX mbB", "Website", "Zöllkau"]);
     let names: Vec<String> = project::list_for_user(&conn, fx.alice).into_iter().map(|p| p.name).collect();
     assert_eq!(names, ["Alpha", "digiHub", "iNUX mbB", "Website", "Zöllkau"]);
+}
+
+#[actix_web::test]
+async fn overdue_and_open_filters() {
+    let fx = fixture();
+    let app = app!(fx);
+    let (token, session) = {
+        let conn = fx.pool.get().unwrap();
+        let create = |title: &str, status_id: i64, due: &str| {
+            ticketsystem_db::repo::ticket::create(
+                &conn, fx.project_id, fx.bug_type_id, status_id, fx.alice, fx.alice, title, "", due,
+            )
+            .unwrap()
+        };
+        create("Late and open", fx.open_id, "2020-01-01");
+        create("Late but done", fx.done_id, "2020-01-01");
+        create("Not due yet", fx.open_id, "2999-01-01");
+
+        oauth_repo::create_client(&conn, "test-client", "test", &[REDIRECT.to_string()]).unwrap();
+        let token = "alice-read-token";
+        oauth_repo::create_token(&conn, &ticketsystem_auth::hash_token(token), "access", "test-client", fx.alice, "tickets:read", 60)
+            .unwrap();
+        (token, user::create_session(&conn, fx.alice, 1).unwrap())
+    };
+
+    // MCP: only_overdue excludes the closed ticket and the one not due yet.
+    let r = tool!(app, token, "list_tickets", json!({ "project_id": fx.project_id, "only_overdue": true }));
+    let titles: Vec<&str> = r["structuredContent"]["tickets"].as_array().unwrap().iter().map(|t| t["title"].as_str().unwrap()).collect();
+    assert_eq!(titles, ["Late and open"]);
+    assert_eq!(r["structuredContent"]["tickets"][0]["overdue"], true);
+    let r = tool!(app, token, "list_tickets", json!({ "project_id": fx.project_id, "only_open": true }));
+    assert_eq!(r["structuredContent"]["total"], 2);
+    let r = tool!(app, token, "get_project", json!({ "project_id": fx.project_id }));
+    assert_eq!(r["structuredContent"]["statuses"][1]["closed"], true);
+
+    let get_html = |uri: String| {
+        test::TestRequest::get().uri(&uri).cookie(Cookie::new("session_id", session.clone())).to_request()
+    };
+
+    // Dashboard: overdue row is highlighted, the done one is not.
+    let html = String::from_utf8(test::read_body(test::call_service(&app, get_html("/".into())).await).await.to_vec()).unwrap();
+    assert_eq!(html.matches("badge-overdue").count(), 2, "listed under 'assigned to you' and 'created by you'");
+    assert!(html.contains("Late but done") && html.contains("Not due yet"));
+
+    // Dashboard filter by project + overdue only.
+    let html = String::from_utf8(
+        test::read_body(test::call_service(&app, get_html(format!("/?project={}&status=&overdue=on", fx.project_id))).await).await.to_vec(),
+    )
+    .unwrap();
+    assert!(html.contains("Late and open") && !html.contains("Late but done") && !html.contains("Not due yet"));
+
+    // Project ticket list: open only, plus an empty select value meaning "all".
+    let html = String::from_utf8(
+        test::read_body(test::call_service(&app, get_html(format!("/projects/{}/tickets?status=&assignee=&type=&open=on", fx.project_id))).await).await.to_vec(),
+    )
+    .unwrap();
+    assert!(html.contains("Late and open") && html.contains("Not due yet") && !html.contains("Late but done"));
 }

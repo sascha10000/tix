@@ -20,6 +20,7 @@ use crate::access::{can_edit_ticket, can_transition_ticket, check_project_access
 use crate::errors::AppError;
 use crate::middleware::AuthenticatedUser;
 use crate::oauth::{SCOPE_READ, SCOPE_WRITE};
+use crate::ticket_filter::{self, TicketFilter};
 
 const DEFAULT_LIMIT: usize = 50;
 const MAX_LIMIT: usize = 200;
@@ -158,6 +159,8 @@ pub fn definitions() -> Value {
                     "assignee_id": { "type": "integer", "description": "Only tickets assigned to this user" },
                     "ticket_type_id": { "type": "integer", "description": "Only tickets of this type" },
                     "query": { "type": "string", "description": "Case-insensitive text search in title and description" },
+                    "only_open": { "type": "boolean", "default": false, "description": "Exclude tickets in a closed status" },
+                    "only_overdue": { "type": "boolean", "default": false, "description": "Only tickets past their due date that are not closed" },
                     "limit": { "type": "integer", "minimum": 1, "maximum": MAX_LIMIT, "default": DEFAULT_LIMIT },
                     "offset": { "type": "integer", "minimum": 0, "default": 0 },
                 },
@@ -254,7 +257,8 @@ fn ticket_summary(t: &Ticket) -> Value {
         "project_id": t.project_id,
         "title": t.title,
         "text_preview": preview,
-        "status": { "id": t.status_id, "name": t.status_name },
+        "status": { "id": t.status_id, "name": t.status_name, "closed": t.status_closed },
+        "overdue": ticket_filter::is_overdue(t, ticket_filter::today()),
         "type": { "id": t.ticket_type_id, "name": t.type_name },
         "assignee": { "id": t.assignee_id, "username": t.assignee_name },
         "creator": { "id": t.creator_id, "username": t.creator_name },
@@ -333,7 +337,7 @@ fn get_project(conn: &Connection, user: &AuthenticatedUser, args: ProjectIdArgs)
     let statuses: Vec<Value> = status::list_all(conn)
         .into_iter()
         .filter(|s| active_status_ids.contains(&s.id))
-        .map(|s| json!({ "id": s.id, "name": s.name, "color": s.color, "position": s.position }))
+        .map(|s| json!({ "id": s.id, "name": s.name, "color": s.color, "position": s.position, "closed": s.is_closed }))
         .collect();
 
     let transitions: Vec<Value> = status::list_workflows(conn)
@@ -392,6 +396,10 @@ struct ListTicketsArgs {
     assignee_id: Option<i64>,
     ticket_type_id: Option<i64>,
     query: Option<String>,
+    #[serde(default)]
+    only_open: bool,
+    #[serde(default)]
+    only_overdue: bool,
     limit: Option<usize>,
     #[serde(default)]
     offset: usize,
@@ -399,23 +407,20 @@ struct ListTicketsArgs {
 
 fn list_tickets(conn: &Connection, user: &AuthenticatedUser, args: ListTicketsArgs) -> ToolResult {
     let p = check_project_access(conn, user, args.project_id)?;
-    let needle = args
-        .query
-        .as_deref()
-        .map(str::trim)
-        .filter(|q| !q.is_empty())
-        .map(str::to_lowercase);
+    let filter = TicketFilter {
+        status_id: args.status_id,
+        assignee_id: args.assignee_id,
+        ticket_type_id: args.ticket_type_id,
+        only_open: args.only_open,
+        only_overdue: args.only_overdue,
+        ..TicketFilter::default()
+    }
+    .with_query(args.query.as_deref());
+    let today = ticket_filter::today();
 
     let matching: Vec<Ticket> = ticket::list_for_project(conn, p.id)
         .into_iter()
-        .filter(|t| args.status_id.is_none_or(|id| t.status_id == id))
-        .filter(|t| args.assignee_id.is_none_or(|id| t.assignee_id == id))
-        .filter(|t| args.ticket_type_id.is_none_or(|id| t.ticket_type_id == id))
-        .filter(|t| {
-            needle.as_deref().is_none_or(|q| {
-                t.title.to_lowercase().contains(q) || t.text.to_lowercase().contains(q)
-            })
-        })
+        .filter(|t| filter.matches(t, today))
         .collect();
 
     let limit = clamp_limit(args.limit);
